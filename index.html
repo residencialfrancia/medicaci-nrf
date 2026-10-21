@@ -909,46 +909,47 @@
       'Domingo'
     ];
 
-    // Inicialización al abrir la página
+// Inicialización al abrir la página: Caché instantáneo + Sincronización en vivo + Auto-Sync cada 45s
     window.addEventListener('DOMContentLoaded', () => {
-      fetchAllData();
+      const cached = localStorage.getItem('rf_med_cache_v1');
+      if (cached) {
+        try {
+          appData = JSON.parse(cached);
+          renderSidebar();
+          if (appData.residentes.length > 0) {
+            selectResident(appData.residentes[0].nroSocio, true);
+          }
+          hideLoading();
+          // Sincroniza en segundo plano sin bloquear la pantalla
+          fetchAllData(true);
+        } catch (e) {
+          fetchAllData(false);
+        }
+      } else {
+        fetchAllData(false);
+      }
+
+      // Sincronización automática silenciosa cada 45 segundos (solo si no estás editando)
+      setInterval(() => {
+        if (!isEditingMed && document.getElementById('obsFormBox').classList.contains('hidden')) {
+          fetchAllData(true);
+        }
+      }, 45000);
     });
 
-    function showLoading(msg = 'Sincronizando datos con Google Sheets...') {
-      document.getElementById('loadingText').textContent = msg;
-      document.getElementById('loadingOverlay').classList.remove('hidden');
-    }
-
-    function hideLoading() {
-      document.getElementById('loadingOverlay').classList.add('hidden');
-    }
-
-    function escapeHtml(str) {
-      return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    function getTodayDDMMYYYY() {
-      const d = new Date();
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      return `${dd}/${mm}/${yyyy}`;
-    }
-
-    // Carga inicial y refresco desde el Sheet
-    async function fetchAllData() {
-      showLoading('Cargando residentes y medicación desde Google Sheets...');
+    // Carga y sincronización con el Sheet de Residentes y Medicación
+    async function fetchAllData(silent = false) {
+      if (!silent) {
+        showLoading('Sincronizando residentes activos y medicación...');
+      }
       try {
-        const res = await fetch(API_URL, { method: 'GET', redirect: 'follow' });
+        const res = await fetch(API_URL, { method: 'GET', redirect: 'follow', cache: 'no-store' });
         const json = await res.json();
         if (json.status !== 'ok') {
           throw new Error(json.message || 'Error al obtener datos del Sheet');
         }
         appData = json.data;
+        localStorage.setItem('rf_med_cache_v1', JSON.stringify(appData));
         renderSidebar();
 
         if (selectedNroSocio) {
@@ -956,18 +957,33 @@
             r => String(r.nroSocio) === String(selectedNroSocio)
           );
           if (exists) {
-            selectResident(selectedNroSocio, true);
+            const currentRes = appData.residentes.find(
+              r => String(r.nroSocio) === String(selectedNroSocio)
+            );
+            renderResidentHeader(currentRes);
+            if (!isEditingMed) {
+              if (currentTab === 'activa') renderActiveMedicationsTable();
+              if (currentTab === 'archivada') renderArchivedMedicationsTable();
+              if (currentTab === 'observaciones') renderObservationsView();
+            }
+          } else if (appData.residentes.length > 0) {
+            // Si el residente seleccionado acaba de ser archivado, pasa automáticamente al primero activo
+            selectResident(appData.residentes[0].nroSocio, true);
           }
         } else if (appData.residentes.length > 0) {
           selectResident(appData.residentes[0].nroSocio, true);
         }
       } catch (err) {
-        alert('Error conectando con el Google Sheet: ' + err.message);
+        if (!silent) {
+          alert('Error conectando con el Google Sheet: ' + err.message);
+        }
       } finally {
-        hideLoading();
+        if (!silent) {
+          hideLoading();
+        }
       }
     }
-
+    
     // Renderiza las tarjetas de la barra lateral izquierda (Nombre Col B + Nro de socio Col E debajo)
     function renderSidebar() {
       const container = document.getElementById('residentsList');
