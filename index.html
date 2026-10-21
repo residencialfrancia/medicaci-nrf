@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestión de Residentes y Medicación</title>
+  <title>Gestor de Medicación</title>
   <style>
     :root {
       --bg-app: #f1f5f9;
@@ -42,10 +42,10 @@
       display: flex;
     }
 
-    /* BARRA LATERAL IZQUIERDA FIJA */
+    /* BARRA LATERAL IZQUIERDA COLAPSABLE */
     .sidebar {
-      width: 280px;
-      min-width: 280px;
+      width: 285px;
+      min-width: 285px;
       background-color: var(--bg-sidebar);
       color: var(--text-sidebar);
       display: flex;
@@ -53,37 +53,60 @@
       height: 100vh;
       border-right: 1px solid #1e293b;
       z-index: 20;
+      transition: margin-left 0.25s ease;
+    }
+
+    .sidebar.collapsed {
+      margin-left: -285px;
     }
 
     .sidebar-header {
-      padding: 18px 16px;
+      padding: 16px;
       border-bottom: 1px solid #1e293b;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .sidebar-title {
-      font-size: 1.05rem;
+    .sidebar-brand {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #60a5fa;
       font-weight: 700;
-      letter-spacing: 0.3px;
+    }
+
+    .sidebar-title-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 6px;
     }
 
-    .btn-refresh {
+    .sidebar-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-sidebar-icon {
       background: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
       border-radius: 6px;
-      padding: 4px 8px;
+      padding: 5px 8px;
       font-size: 0.78rem;
+      font-weight: 600;
       cursor: pointer;
       transition: 0.15s;
     }
 
-    .btn-refresh:hover {
+    .btn-sidebar-icon:hover {
       background: #334155;
       color: #fff;
     }
@@ -151,9 +174,41 @@
       flex: 1;
       height: 100vh;
       overflow-y: auto;
-      padding: 20px 26px 40px 26px;
+      padding: 16px 24px 40px 24px;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+    }
+
+    /* BARRA SUPERIOR CON TÍTULO "GESTOR DE MEDICACIÓN" Y BOTÓN DESPLEGAR BARRA LATERAL */
+    .top-app-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-main-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
+    }
+
+    .sync-status-badge {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      background: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
     }
 
     .empty-state {
@@ -224,8 +279,8 @@
     /* Grilla inferior de datos personales en letra más pequeña */
     .header-details-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      gap: 10px 16px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px 14px;
       font-size: 0.82rem;
     }
 
@@ -270,6 +325,8 @@
       padding: 0 4px;
       position: relative;
       z-index: 5;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .folder-tabs {
@@ -288,22 +345,15 @@
       border-radius: 12px 12px 0 0;
       cursor: pointer;
       position: relative;
-      margin-right: -12px; /* Efecto solapado tipo carpeta */
-      transition: background-color 0.15s, color 0.15s, transform 0.1s;
+      margin-right: -12px;
+      transition: background-color 0.15s, color 0.15s;
       box-shadow: -2px -1px 4px rgba(0, 0, 0, 0.04);
       user-select: none;
     }
 
-    .folder-tab:first-child {
-      z-index: 3;
-    }
-    .folder-tab:nth-child(2) {
-      z-index: 2;
-    }
-    .folder-tab:nth-child(3) {
-      z-index: 1;
-      margin-right: 0;
-    }
+    .folder-tab:first-child { z-index: 3; }
+    .folder-tab:nth-child(2) { z-index: 2; }
+    .folder-tab:nth-child(3) { z-index: 1; margin-right: 0; }
 
     .folder-tab:hover {
       background-color: #f1f5f9;
@@ -315,7 +365,7 @@
       color: var(--primary);
       z-index: 10 !important;
       padding-bottom: 12px;
-      margin-bottom: -1px; /* Conecta visualmente con el contenedor inferior */
+      margin-bottom: -1px;
       box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.06);
     }
 
@@ -433,7 +483,6 @@
       background-color: #f8fafc;
     }
 
-    /* Etiquetas de estado */
     .badge {
       display: inline-block;
       padding: 3px 8px;
@@ -458,7 +507,6 @@
       color: #475569;
     }
 
-    /* Controles de edición en tabla */
     .cell-input,
     .cell-select {
       width: 100%;
@@ -478,7 +526,6 @@
       cursor: not-allowed;
     }
 
-    /* Widget de Frecuencia / Horario (múltiples horarios AM/PM) */
     .schedule-editor {
       display: flex;
       flex-direction: column;
@@ -507,7 +554,6 @@
       border-radius: 4px;
     }
 
-    /* Widget de Días a administrar + Fechas si es Tratamiento temporal */
     .days-editor {
       min-width: 185px;
       display: flex;
@@ -674,20 +720,24 @@
 </head>
 <body>
 
-  <!-- OVERLAY DE CARGA Y GUARDADO -->
-  <div id="loadingOverlay" class="loading-overlay">
+  <!-- OVERLAY DE CARGA -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
     <div class="loading-box">
       <div class="spinner"></div>
       <span id="loadingText">Sincronizando datos con Google Sheets...</span>
     </div>
   </div>
 
-  <!-- BARRA LATERAL IZQUIERDA (SIEMPRE VISIBLE) -->
-  <aside class="sidebar">
+  <!-- BARRA LATERAL IZQUIERDA (SE PUEDE ESCONDER Y DESPLEGAR CON BOTÓN) -->
+  <aside id="sidebarPanel" class="sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-title">
-        <span>Residentes Activos</span>
-        <button class="btn-refresh" onclick="fetchAllData()" title="Recargar planilla">↻ Actualizar</button>
+      <div class="sidebar-brand">Gestor de Medicación</div>
+      <div class="sidebar-title-row">
+        <span class="sidebar-title">Residentes Activos</span>
+        <div class="sidebar-actions">
+          <button class="btn-sidebar-icon" onclick="fetchAllData(false)" title="Sincronizar ahora">↻</button>
+          <button class="btn-sidebar-icon" onclick="toggleSidebar()" title="Esconder barra lateral">◀ Ocultar</button>
+        </div>
       </div>
       <input
         type="text"
@@ -702,6 +752,17 @@
 
   <!-- PANEL PRINCIPAL DERECHO -->
   <main class="main-panel">
+    <!-- BARRA SUPERIOR CON BOTÓN DESPLEGAR Y TÍTULO "GESTOR DE MEDICACIÓN" -->
+    <div class="top-app-bar">
+      <div class="top-bar-left">
+        <button id="btnOpenSidebar" class="btn btn-outline hidden" onclick="toggleSidebar()">
+          ☰ Mostrar Residentes
+        </button>
+        <h1 class="app-main-title">Gestor de Medicación</h1>
+      </div>
+      <span id="syncStatusBadge" class="sync-status-badge">Conectando...</span>
+    </div>
+
     <!-- Estado inicial cuando aún no se seleccionó un residente -->
     <div id="emptyResidentState" class="empty-state">
       <h2>Seleccioná un residente en la barra lateral izquierda</h2>
@@ -718,49 +779,25 @@
       <!-- FILA DE SOLAPAS ESTILO CARPETA (IZQUIERDA) + EDITAR MEDICACIÓN (DERECHA) -->
       <div class="folder-actions-bar">
         <div class="folder-tabs">
-          <div
-            id="tabBtnActiva"
-            class="folder-tab active"
-            onclick="switchTab('activa')"
-          >
+          <div id="tabBtnActiva" class="folder-tab active" onclick="switchTab('activa')">
             Medicación activa
           </div>
-          <div
-            id="tabBtnArchivada"
-            class="folder-tab"
-            onclick="switchTab('archivada')"
-          >
+          <div id="tabBtnArchivada" class="folder-tab" onclick="switchTab('archivada')">
             Medicación archivada
           </div>
-          <div
-            id="tabBtnObservaciones"
-            class="folder-tab"
-            onclick="switchTab('observaciones')"
-          >
+          <div id="tabBtnObservaciones" class="folder-tab" onclick="switchTab('observaciones')">
             Observaciones
           </div>
         </div>
 
         <div class="right-actions">
-          <button
-            id="btnStartEdit"
-            class="btn btn-primary"
-            onclick="enableMedicationEdit()"
-          >
+          <button id="btnStartEdit" class="btn btn-primary" onclick="enableMedicationEdit()">
             ✎ Editar Medicación
           </button>
-          <button
-            id="btnSaveEdit"
-            class="btn btn-success hidden"
-            onclick="saveMedicationChanges()"
-          >
+          <button id="btnSaveEdit" class="btn btn-success hidden" onclick="saveMedicationChanges()">
             ✔ Guardar / Actualizar cambios
           </button>
-          <button
-            id="btnCancelEdit"
-            class="btn btn-outline hidden"
-            onclick="cancelMedicationEdit()"
-          >
+          <button id="btnCancelEdit" class="btn btn-outline hidden" onclick="cancelMedicationEdit()">
             ✖ Cancelar
           </button>
         </div>
@@ -875,7 +912,6 @@
     // URL DE LA WEB APP DE GOOGLE APPS SCRIPT
     const API_URL = 'https://script.google.com/macros/s/AKfycbwDMYIpP9Mt0lMQRzXCgp9FxQFLC70pLizIcVcHt4PC9dtFdMYUClkGee41SRi0qPT4/exec';
 
-    // Estado global en memoria
     let appData = {
       residentes: [],
       medicacionActiva: [],
@@ -885,10 +921,8 @@
     };
 
     let selectedNroSocio = null;
-    let currentTab = 'activa'; // 'activa' | 'archivada' | 'observaciones'
+    let currentTab = 'activa';
     let isEditingMed = false;
-
-    // Copias temporales mientras se edita la tabla de Medicación Activa
     let draftActiveMeds = [];
     let draftArchivedMeds = [];
 
@@ -909,47 +943,124 @@
       'Domingo'
     ];
 
-// Inicialización al abrir la página: Caché instantáneo + Sincronización en vivo + Auto-Sync cada 45s
+    // Esconder / Desplegar barra lateral izquierda
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebarPanel');
+      const btnOpen = document.getElementById('btnOpenSidebar');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      btnOpen.classList.toggle('hidden', !isCollapsed);
+    }
+
+    function showLoading(msg = 'Sincronizando datos con Google Sheets...') {
+      document.getElementById('loadingText').textContent = msg;
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    function setSyncBadge(text, isError = false) {
+      const badge = document.getElementById('syncStatusBadge');
+      if (!badge) return;
+      badge.textContent = text;
+      badge.style.background = isError ? '#fee2e2' : '#dcfce7';
+      badge.style.color = isError ? '#b91c1c' : '#15803d';
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function getTodayDDMMYYYY() {
+      const d = new Date();
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    // Inicialización: Carga instantánea desde caché local + sincronización en vivo con Google Sheets
     window.addEventListener('DOMContentLoaded', () => {
-      const cached = localStorage.getItem('rf_med_cache_v1');
+      const cached = localStorage.getItem('rf_med_cache_v2');
       if (cached) {
         try {
-          appData = JSON.parse(cached);
-          renderSidebar();
-          if (appData.residentes.length > 0) {
-            selectResident(appData.residentes[0].nroSocio, true);
+          const parsed = JSON.parse(cached);
+          if (parsed && Array.isArray(parsed.residentes)) {
+            appData = parsed;
+            renderSidebar();
+            if (appData.residentes.length > 0) {
+              selectResident(appData.residentes[0].nroSocio, true);
+            }
+            setSyncBadge('Actualizando en segundo plano...');
+            fetchAllData(true);
+            startAutoSyncTimer();
+            return;
           }
-          hideLoading();
-          // Sincroniza en segundo plano sin bloquear la pantalla
-          fetchAllData(true);
         } catch (e) {
-          fetchAllData(false);
+          localStorage.removeItem('rf_med_cache_v2');
         }
-      } else {
-        fetchAllData(false);
       }
 
-      // Sincronización automática silenciosa cada 45 segundos (solo si no estás editando)
+      fetchAllData(false);
+      startAutoSyncTimer();
+    });
+
+    function startAutoSyncTimer() {
       setInterval(() => {
-        if (!isEditingMed && document.getElementById('obsFormBox').classList.contains('hidden')) {
+        const obsFormHidden = document.getElementById('obsFormBox').classList.contains('hidden');
+        if (!isEditingMed && obsFormHidden) {
           fetchAllData(true);
         }
       }, 45000);
-    });
+    }
 
-    // Carga y sincronización con el Sheet de Residentes y Medicación
+    // Petición al Google Apps Script con control de timeout para que nunca quede colgado el cartel
     async function fetchAllData(silent = false) {
       if (!silent) {
-        showLoading('Sincronizando residentes activos y medicación...');
+        showLoading('Sincronizando datos con Google Sheets...');
+      } else {
+        setSyncBadge('Sincronizando...');
       }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 28000);
+
       try {
-        const res = await fetch(API_URL, { method: 'GET', redirect: 'follow', cache: 'no-store' });
-        const json = await res.json();
+        const urlWithTs = `${API_URL}?t=${Date.now()}`;
+        const res = await fetch(urlWithTs, {
+          method: 'GET',
+          redirect: 'follow',
+          signal: controller.signal
+        });
+
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (parseErr) {
+          throw new Error(
+            'La Web App de Google devolvió una página de permiso o versión antigua. En Apps Script andá a Implementar > Administrar implementaciones > Editar (lápiz) > Nueva versión > Implementar.'
+          );
+        }
+
         if (json.status !== 'ok') {
           throw new Error(json.message || 'Error al obtener datos del Sheet');
         }
-        appData = json.data;
-        localStorage.setItem('rf_med_cache_v1', JSON.stringify(appData));
+
+        appData = json.data || {
+          residentes: [],
+          medicacionActiva: [],
+          medicacionArchivada: [],
+          observaciones: [],
+          profesionales: []
+        };
+
+        localStorage.setItem('rf_med_cache_v2', JSON.stringify(appData));
         renderSidebar();
 
         if (selectedNroSocio) {
@@ -967,29 +1078,32 @@
               if (currentTab === 'observaciones') renderObservationsView();
             }
           } else if (appData.residentes.length > 0) {
-            // Si el residente seleccionado acaba de ser archivado, pasa automáticamente al primero activo
             selectResident(appData.residentes[0].nroSocio, true);
           }
         } else if (appData.residentes.length > 0) {
           selectResident(appData.residentes[0].nroSocio, true);
         }
+
+        const nowTime = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        setSyncBadge(`Sincronizado (${nowTime})`, false);
       } catch (err) {
+        console.error('Error de sincronización:', err);
+        setSyncBadge('Error de conexión', true);
         if (!silent) {
-          alert('Error conectando con el Google Sheet: ' + err.message);
+          alert('Aviso al conectar con Google Sheets:\n\n' + err.message);
         }
       } finally {
-        if (!silent) {
-          hideLoading();
-        }
+        clearTimeout(timeoutId);
+        hideLoading();
       }
     }
-    
-    // Renderiza las tarjetas de la barra lateral izquierda (Nombre Col B + Nro de socio Col E debajo)
+
+    // Renderiza las tarjetas de la barra lateral izquierda
     function renderSidebar() {
       const container = document.getElementById('residentsList');
       const query = document.getElementById('searchInput').value.trim().toLowerCase();
 
-      const filtered = appData.residentes.filter(r => {
+      const filtered = (appData.residentes || []).filter(r => {
         const nombre = String(r.nombre || '').toLowerCase();
         const completo = String(r.nombreCompleto || '').toLowerCase();
         const socio = String(r.nroSocio || '').toLowerCase();
@@ -1014,7 +1128,7 @@
         .join('');
     }
 
-    // Seleccionar residente sin ocultar la barra lateral
+    // Seleccionar residente manteniendo la barra lateral como esté
     function selectResident(nroSocio, keepCurrentTab = false) {
       if (isEditingMed) {
         const confirmLeave = confirm('Tenés cambios sin guardar en Medicación Activa. ¿Querés descartarlos y cambiar de residente?');
@@ -1026,7 +1140,7 @@
       selectedNroSocio = String(nroSocio);
       renderSidebar();
 
-      const resident = appData.residentes.find(
+      const resident = (appData.residentes || []).find(
         r => String(r.nroSocio) === String(selectedNroSocio)
       );
 
@@ -1044,7 +1158,7 @@
       }
     }
 
-    // Renderiza el encabezado del residente respetando el orden y jerarquía visual solicitados
+    // Renderiza el encabezado del residente
     function renderResidentHeader(r) {
       const header = document.getElementById('residentHeader');
       const apodoHtml = r.apodo ? `<span class="header-nickname">"${escapeHtml(r.apodo)}"</span>` : '';
@@ -1111,7 +1225,6 @@
       `;
     }
 
-    // Cambio entre las 3 solapas tipo carpeta
     function switchTab(tabName) {
       if (isEditingMed && tabName !== 'activa') {
         const discard = confirm('Estás editando la Medicación Activa. ¿Querés salir sin guardar los cambios?');
@@ -1147,8 +1260,7 @@
       }
       isEditingMed = true;
 
-      // Clonar las filas actuales del residente para edición en línea
-      draftActiveMeds = appData.medicacionActiva
+      draftActiveMeds = (appData.medicacionActiva || [])
         .filter(m => String(m.nroSocio) === String(selectedNroSocio))
         .map(m => ({ ...m }));
       draftArchivedMeds = [];
@@ -1173,7 +1285,6 @@
       document.getElementById('thAccionesActiva').classList.toggle('hidden', !isEditingMed);
     }
 
-    // Agregar nueva fila en blanco en Medicación Activa
     function addNewMedicationRow() {
       draftActiveMeds.push({
         rowNumber: null,
@@ -1196,7 +1307,6 @@
       renderActiveMedicationsTable();
     }
 
-    // Dar de baja (Archivar) una fila: pasa a Medicación Archivada con Fecha de Cese automática
     function archiveMedicationRow(index) {
       const item = draftActiveMeds[index];
       if (!item) return;
@@ -1214,26 +1324,22 @@
       renderActiveMedicationsTable();
     }
 
-    // Actualizar campos simples de la fila editada
     function updateDraftField(index, field, value) {
       if (!draftActiveMeds[index]) return;
       draftActiveMeds[index][field] = value;
 
-      // Si cambia el Tipo de Indicación, re-renderizamos para mostrar/ocultar fechas de inicio y fin
       if (field === 'tipoIndicacion') {
         renderActiveMedicationsTable();
       }
 
-      // Si cambia el Médico Prescriptor, autocompletar N° de Matrícula según la pestaña Profesionales
       if (field === 'medicoPrescriptor') {
-        const foundProf = appData.profesionales.find(
+        const foundProf = (appData.profesionales || []).find(
           p => String(p.nombre).trim().toLowerCase() === String(value).trim().toLowerCase()
         );
         draftActiveMeds[index].nroMatricula = foundProf ? foundProf.matricula : '';
         renderActiveMedicationsTable();
       }
 
-      // Si cambia Estado de Indicación entre Activo y Pausado, calcular Fecha de Baja/Pausa automáticamente
       if (field === 'estadoIndicacion') {
         if (String(value).toLowerCase() === 'pausado') {
           draftActiveMeds[index].fechaBajaPausa = getTodayDDMMYYYY();
@@ -1244,7 +1350,6 @@
       }
     }
 
-    // Auxiliares para el selector múltiple de horarios (AM/PM)
     function parseSchedules(str) {
       if (!str || !String(str).trim()) return [{ time: '08:00', period: 'AM' }];
       return String(str)
@@ -1288,7 +1393,6 @@
       renderActiveMedicationsTable();
     }
 
-    // Auxiliares para "Días a administrar" + Fechas de Inicio/Fin en Tratamiento temporal
     function parseDaysInfo(rawStr) {
       const raw = String(rawStr || '');
       let inicio = '';
@@ -1365,12 +1469,11 @@
       item.diasAdministrar = buildDaysString(info.selectedDays, isTemp, info.inicio, info.fin);
     }
 
-    // Renderizado de la tabla de Medicación Activa (Modo Lectura o Modo Edición en línea)
     function renderActiveMedicationsTable() {
       const tbody = document.getElementById('tbodyMedActiva');
       const rows = isEditingMed
         ? draftActiveMeds
-        : appData.medicacionActiva.filter(m => String(m.nroSocio) === String(selectedNroSocio));
+        : (appData.medicacionActiva || []).filter(m => String(m.nroSocio) === String(selectedNroSocio));
 
       if (rows.length === 0) {
         const colSpan = isEditingMed ? 15 : 14;
@@ -1387,7 +1490,6 @@
       }
 
       if (!isEditingMed) {
-        // MODO LECTURA
         tbody.innerHTML = rows
           .map(m => {
             const isPaused = String(m.estadoIndicacion).toLowerCase() === 'pausado';
@@ -1415,17 +1517,15 @@
         return;
       }
 
-      // MODO EDICIÓN DIRECTA SOBRE LA TABLA
       tbody.innerHTML = rows
         .map((m, idx) => {
           const schedules = parseSchedules(m.frecuenciaHorario);
           const daysInfo = parseDaysInfo(m.diasAdministrar);
           const isTemporal = String(m.tipoIndicacion).toLowerCase().includes('temporal');
 
-          // Opciones de profesionales desde la pestaña "Porfesionales"
           const profOptions = [
             `<option value="">-- Seleccionar profesional --</option>`,
-            ...appData.profesionales.map(p => {
+            ...(appData.profesionales || []).map(p => {
               const selected = String(p.nombre).trim() === String(m.medicoPrescriptor).trim() ? 'selected' : '';
               return `<option value="${escapeHtml(p.nombre)}" ${selected}>${escapeHtml(p.nombre)}${p.especialidad ? ' (' + escapeHtml(p.especialidad) + ')' : ''}</option>`;
             })
@@ -1433,42 +1533,29 @@
 
           return `
             <tr>
-              <!-- Col 2: Tipo de Indicación -->
               <td>
                 <select class="cell-select" onchange="updateDraftField(${idx}, 'tipoIndicacion', this.value)">
                   <option value="Medicación" ${m.tipoIndicacion === 'Medicación' ? 'selected' : ''}>Medicación</option>
                   <option value="Tratamiento temporal" ${isTemporal ? 'selected' : ''}>Tratamiento temporal</option>
                 </select>
               </td>
-
-              <!-- Col 3: Nombre del medicamento -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.nombreMedicamento)}" placeholder="Ej: Ibuprofeno" oninput="updateDraftField(${idx}, 'nombreMedicamento', this.value)" />
               </td>
-
-              <!-- Col 4: Nombre de la droga -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.nombreDroga)}" placeholder="Droga / principio activo" oninput="updateDraftField(${idx}, 'nombreDroga', this.value)" />
               </td>
-
-              <!-- Col 5: Forma Farmacéutica -->
               <td>
                 <select class="cell-select" onchange="updateDraftField(${idx}, 'formaFarmaceutica', this.value)">
                   ${FORMAS_FARMACEUTICAS.map(f => `<option value="\${escapeHtml(f)}" ${m.formaFarmaceutica === f ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('')}
                 </select>
               </td>
-
-              <!-- Col 6: Dosis / Concentración -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.dosis)}" placeholder="Ej: 400 mg" oninput="updateDraftField(${idx}, 'dosis', this.value)" />
               </td>
-
-              <!-- Col 7: Unidades por Toma -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.unidadesPorToma)}" placeholder="Ej: 1 pastilla / 10 gotas" oninput="updateDraftField(${idx}, 'unidadesPorToma', this.value)" />
               </td>
-
-              <!-- Col 8: Frecuencia / Horario (múltiples horarios AM/PM) -->
               <td>
                 <div class="schedule-editor">
                   ${schedules
@@ -1492,8 +1579,6 @@
                   <button type="button" class="btn btn-outline btn-sm" onclick="addScheduleSlot(${idx})">+ Horario</button>
                 </div>
               </td>
-
-              <!-- Col 9: Días a administrar (+ Inicio y Fin si es Tratamiento temporal) -->
               <td>
                 <div class="days-editor">
                   <div class="days-checkboxes">
@@ -1501,8 +1586,8 @@
                       const checked = daysInfo.selectedDays.includes(dia) ? 'checked' : '';
                       return `
                         <label>
-                          <input type="checkbox" \${checked} onchange="toggleDaySelection(${idx}, '${dia}', this.checked)" />
-                          \${dia}
+                          <input type="checkbox" ${checked} onchange="toggleDaySelection(${idx}, '${dia}', this.checked)" />
+                          ${dia}
                         </label>
                       `;
                     }).join('')}
@@ -1525,43 +1610,29 @@
                   }
                 </div>
               </td>
-
-              <!-- Col 10: Médico Prescriptor - Profesional -->
               <td>
                 <select class="cell-select" onchange="updateDraftField(${idx}, 'medicoPrescriptor', this.value)">
                   ${profOptions}
                 </select>
               </td>
-
-              <!-- Col 11: N° de Matrícula (Autocompletado según profesional) -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.nroMatricula)}" readonly title="Se autocompleta al elegir el profesional" />
               </td>
-
-              <!-- Col 12: Estado de Indicación (Activo / Pausado) -->
               <td>
                 <select class="cell-select" onchange="updateDraftField(${idx}, 'estadoIndicacion', this.value)">
                   <option value="Activo" ${String(m.estadoIndicacion).toLowerCase() !== 'pausado' ? 'selected' : ''}>Activo</option>
                   <option value="Pausado" ${String(m.estadoIndicacion).toLowerCase() === 'pausado' ? 'selected' : ''}>Pausado</option>
                 </select>
               </td>
-
-              <!-- Col 13: Fecha Prescripción (Automática) -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.fechaPrescripcion || getTodayDDMMYYYY())}" readonly />
               </td>
-
-              <!-- Col 14: Fecha de baja/pausa (Automática al pausar) -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.fechaBajaPausa || '')}" placeholder="Automático al pausar" readonly />
               </td>
-
-              <!-- Col 15: Fecha de Cese / Baja (Automática al archivar) -->
               <td>
                 <input type="text" class="cell-input" value="${escapeHtml(m.fechaCeseBaja || '')}" placeholder="Automático al archivar" readonly />
               </td>
-
-              <!-- Acción: Dar de baja y pasar a Medicación Archivada -->
               <td>
                 <button type="button" class="btn btn-danger btn-sm" onclick="archiveMedicationRow(${idx})">
                   Archivar / Baja
@@ -1573,7 +1644,6 @@
         .join('');
     }
 
-    // Guardar todas las modificaciones de Medicación Activa y Bajas en el Sheet
     async function saveMedicationChanges() {
       showLoading('Guardando cambios de medicación en Google Sheets...');
       try {
@@ -1597,11 +1667,13 @@
         }
 
         appData = json.data;
+        localStorage.setItem('rf_med_cache_v2', JSON.stringify(appData));
         isEditingMed = false;
         draftActiveMeds = [];
         draftArchivedMeds = [];
         updateEditButtonsUI();
         renderActiveMedicationsTable();
+        setSyncBadge('Cambios guardados', false);
       } catch (err) {
         alert('Error al guardar medicación: ' + err.message);
       } finally {
@@ -1613,7 +1685,7 @@
 
     function renderArchivedMedicationsTable() {
       const tbody = document.getElementById('tbodyMedArchivada');
-      const rows = appData.medicacionArchivada.filter(
+      const rows = (appData.medicacionArchivada || []).filter(
         m => String(m.nroSocio) === String(selectedNroSocio)
       );
 
@@ -1665,7 +1737,7 @@
 
     function renderObservationsView() {
       const listContainer = document.getElementById('obsListContainer');
-      const obsList = appData.observaciones.filter(
+      const obsList = (appData.observaciones || []).filter(
         o => String(o.nroSocio) === String(selectedNroSocio)
       );
 
@@ -1727,10 +1799,12 @@
         }
 
         appData = json.data;
+        localStorage.setItem('rf_med_cache_v2', JSON.stringify(appData));
         document.getElementById('obsTextInput').value = '';
         document.getElementById('obsProfInput').value = '';
         toggleObsForm(false);
         renderObservationsView();
+        setSyncBadge('Observación guardada', false);
       } catch (err) {
         alert('Error al guardar observación: ' + err.message);
       } finally {
