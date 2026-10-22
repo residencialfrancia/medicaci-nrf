@@ -231,7 +231,6 @@
       margin-bottom: 18px;
     }
 
-    /* Línea superior: Nro de socio a la izquierda, Nombre Completo grande + Apodo a la derecha */
     .header-top-row {
       display: flex;
       justify-content: space-between;
@@ -276,7 +275,6 @@
       color: var(--primary);
     }
 
-    /* Grilla inferior de datos personales en letra más pequeña */
     .header-details-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -986,23 +984,21 @@
 
     // Inicialización: Carga instantánea desde caché local + sincronización en vivo con Google Sheets
     window.addEventListener('DOMContentLoaded', () => {
-      const cached = localStorage.getItem('rf_med_cache_v2');
+      const cached = localStorage.getItem('rf_med_cache_v3');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          if (parsed && Array.isArray(parsed.residentes)) {
+          if (parsed && Array.isArray(parsed.residentes) && parsed.residentes.length > 0) {
             appData = parsed;
             renderSidebar();
-            if (appData.residentes.length > 0) {
-              selectResident(appData.residentes[0].nroSocio, true);
-            }
+            selectResident(appData.residentes[0].nroSocio, true);
             setSyncBadge('Actualizando en segundo plano...');
             fetchAllData(true);
             startAutoSyncTimer();
             return;
           }
         } catch (e) {
-          localStorage.removeItem('rf_med_cache_v2');
+          localStorage.removeItem('rf_med_cache_v3');
         }
       }
 
@@ -1060,7 +1056,7 @@
           profesionales: []
         };
 
-        localStorage.setItem('rf_med_cache_v2', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v3', JSON.stringify(appData));
         renderSidebar();
 
         if (selectedNroSocio) {
@@ -1569,7 +1565,7 @@
                       </select>
                       \${
                         schedules.length > 1
-                          ? `<button type="button" class="btn btn-danger btn-sm" onclick="removeScheduleSlot(${idx}, ${sIdx})" title="Quitar horario">×</button>`
+                          ? `<button type="button" class="btn btn-danger btn-sm" onclick="removeScheduleSlot(${idx}, ${sIdx})" title="Quitar horario">&times;</button>`
                           : ''
                       }
                     </div>
@@ -1586,8 +1582,8 @@
                       const checked = daysInfo.selectedDays.includes(dia) ? 'checked' : '';
                       return `
                         <label>
-                          <input type="checkbox" ${checked} onchange="toggleDaySelection(${idx}, '${dia}', this.checked)" />
-                          ${dia}
+                          <input type="checkbox" \${checked} onchange="toggleDaySelection(${idx}, '${dia}', this.checked)" />
+                          \${dia}
                         </label>
                       `;
                     }).join('')}
@@ -1667,7 +1663,7 @@
         }
 
         appData = json.data;
-        localStorage.setItem('rf_med_cache_v2', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v3', JSON.stringify(appData));
         isEditingMed = false;
         draftActiveMeds = [];
         draftArchivedMeds = [];
@@ -1799,7 +1795,7 @@
         }
 
         appData = json.data;
-        localStorage.setItem('rf_med_cache_v2', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v3', JSON.stringify(appData));
         document.getElementById('obsTextInput').value = '';
         document.getElementById('obsProfInput').value = '';
         toggleObsForm(false);
