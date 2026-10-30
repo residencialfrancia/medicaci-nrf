@@ -989,7 +989,7 @@
           </div>
         </div>
 
-        <!-- VISTA 2: MEDICACIÓN ARCHIVADA (SIN COLUMNA NRO DE SOCIO) -->
+        <!-- VISTA 2: MEDICACIÓN ARCHIVADA (SIN COLUMNA NRO DE SOCIO NI ID MEDICACIÓN) -->
         <div id="viewArchivada" class="hidden">
           <div class="table-wrapper">
             <table>
@@ -1154,7 +1154,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', function() {
-      const cached = localStorage.getItem('rf_med_cache_v6');
+      const cached = localStorage.getItem('rf_med_cache_v7');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
@@ -1168,7 +1168,7 @@
             return;
           }
         } catch (e) {
-          localStorage.removeItem('rf_med_cache_v6');
+          localStorage.removeItem('rf_med_cache_v7');
         }
       }
 
@@ -1200,7 +1200,6 @@
       }
 
       const controller = new AbortController();
-      // 60 segundos de margen para evitar que conexiones lentas o aperturas en frío de Google aborten la petición
       const timeoutId = setTimeout(function() { controller.abort(); }, 60000);
 
       try {
@@ -1234,7 +1233,7 @@
           profesionales: []
         };
 
-        localStorage.setItem('rf_med_cache_v6', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v7', JSON.stringify(appData));
         renderSidebar();
 
         if (selectedNroSocio) {
@@ -1481,7 +1480,7 @@
         }
 
         appData = json.data;
-        localStorage.setItem('rf_med_cache_v6', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v7', JSON.stringify(appData));
         isEditingHeader = false;
 
         const updatedRes = (appData.residentes || []).find(function(r) {
@@ -1536,6 +1535,7 @@
         .map(function(m) {
           const copy = Object.assign({}, m);
           copy.nroSocio = selectedNroSocio;
+          copy.idMedicacion = m.idMedicacion || '';
           copy.formaFarmaceutica1 = normalizeForma1Key(copy.formaFarmaceutica1);
           const opts2 = getOpcionesForma2(copy.formaFarmaceutica1);
           if (!copy.formaFarmaceutica2 || !opts2.includes(copy.formaFarmaceutica2)) {
@@ -1584,7 +1584,8 @@
         estadoIndicacion: 'Activo',
         fechaPrescripcion: getTodayDDMMYYYY(),
         fechaBajaPausa: '',
-        fechaCeseBaja: ''
+        fechaCeseBaja: '',
+        idMedicacion: '' // El backend generará un código único de 5 números y 1 letra al guardar
       });
       renderActiveMedicationsTable();
     }
@@ -1751,7 +1752,7 @@
       const thead = document.getElementById('theadMedActiva');
       const tbody = document.getElementById('tbodyMedActiva');
 
-      // Encabezados dinámicos SIN la columna Nro de socio
+      // Encabezados dinámicos SIN las columnas internas "Nro de socio" ni "ID Medicación"
       if (!isEditingMed) {
         // ORDEN DE VISTA EN PÁGINA (17 columnas visibles empezando por Estado de Indicación)
         thead.innerHTML =
@@ -1775,7 +1776,7 @@
             '<th>Fecha de Cese / Baja</th>' +
           '</tr>';
       } else {
-        // ORDEN PARA EDITAR O AGREGAR (Sin Nro de socio + Columna Acciones)
+        // ORDEN PARA EDITAR O AGREGAR (Sin Nro de socio ni ID Medicación + Columna Acciones)
         thead.innerHTML =
           '<tr>' +
             '<th>Tipo de Indicación</th>' +
@@ -1846,7 +1847,7 @@
         return;
       }
 
-      // MODO EDICIÓN / AGREGAR (Sin mostrar Nro de socio)
+      // MODO EDICIÓN / AGREGAR
       tbody.innerHTML = rows
         .map(function(m, idx) {
           const schedules = parseSchedules(m.frecuenciaHorario);
@@ -1924,7 +1925,7 @@
               '<td><select class="cell-select" onchange="updateDraftField(' + idx + ', \'formaFarmaceutica1\', this.value)">' + forma1OptionsHtml + '</select></td>' +
               '<td><select class="cell-select" onchange="updateDraftField(' + idx + ', \'formaFarmaceutica2\', this.value)">' + forma2OptionsHtml + '</select></td>' +
               '<td><input type="text" class="cell-input" value="' + escapeHtml(m.dosis) + '" placeholder="Ej: 400 mg" oninput="updateDraftField(' + idx + ', \'dosis\', this.value)" /></td>' +
-              '<td><input type="text" class="cell-input" value="' + escapeHtml(m.unidadesPorToma) + '" placeholder="Ej: 1 pastilla / 10 gotas" oninput="updateDraftField(' + idx + ', \'unidadesPorToma\', this.value)" /></td>' +
+              '<td><input type="text" class="cell-input" value="' + escapeHtml(m.unidadesPorToma) + '" placeholder="Ej: 1, 1/2, 1/4, 10 gotas" oninput="updateDraftField(' + idx + ', \'unidadesPorToma\', this.value)" /></td>' +
               '<td><div class="schedule-editor">' + schedulesHtml + '<button type="button" class="btn btn-outline btn-sm" onclick="addScheduleSlot(' + idx + ')">+ Horario</button></div></td>' +
               '<td><div class="days-editor"><div class="days-checkboxes">' + daysCheckboxesHtml + '</div></div></td>' +
               '<td>' + fechaInicioCellHtml + '</td>' +
@@ -1970,7 +1971,7 @@
         }
 
         appData = json.data;
-        localStorage.setItem('rf_med_cache_v6', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v7', JSON.stringify(appData));
         isEditingMed = false;
         draftActiveMeds = [];
         draftArchivedMeds = [];
@@ -1984,7 +1985,7 @@
       }
     }
 
-    // ==================== MÓDULO: MEDICACIÓN ARCHIVADA (SIN COLUMNA NRO DE SOCIO) ====================
+    // ==================== MÓDULO: MEDICACIÓN ARCHIVADA (SIN COLUMNA NRO DE SOCIO NI ID MEDICACIÓN) ====================
 
     function renderArchivedMedicationsTable() {
       const tbody = document.getElementById('tbodyMedArchivada');
@@ -2103,7 +2104,7 @@
         }
 
         appData = json.data;
-        localStorage.setItem('rf_med_cache_v6', JSON.stringify(appData));
+        localStorage.setItem('rf_med_cache_v7', JSON.stringify(appData));
         document.getElementById('obsTextInput').value = '';
         document.getElementById('obsProfInput').value = '';
         toggleObsForm(false);
