@@ -2528,7 +2528,7 @@
       if (len > 30) return Math.max(6.2, baseFontPt - 1.6);
       return baseFontPt;
     }
-    
+
     function getHoraCellFontSizePt(text, baseFontPt) {
       const len = String(text || '').length;
       if (len > 9) return Math.min(6.0, baseFontPt);
@@ -2583,8 +2583,8 @@
       const logoUrl = new URL('Logo.png', window.location.href).href;
 
       const totalDataRows = medRows.length + tempRows.length;
-      const usableTableHeightMm = 168;
-      const rowHeightMm = Math.max(5.0, Math.min(13.0, usableTableHeightMm / Math.max(1, totalDataRows)));
+      const usableTableHeightMm = 152;
+      const rowHeightMm = Math.max(4.4, Math.min(11.5, usableTableHeightMm / Math.max(1, totalDataRows)));
       const baseFontPt  = Math.max(7.2, Math.min(11.0, rowHeightMm * 0.90));
       const headerFontPt = Math.max(8.0, Math.min(10.5, baseFontPt + 0.5));
 
@@ -2640,27 +2640,29 @@
             '@page { size: 355.6mm 215.9mm; margin: 3mm; }' +
             '* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
             'html, body { width: 100%; height: 100%; background: #fff; color: #000; }' +
-            '.sheet-page { width: 100%; height: 209mm; max-height: 209mm; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }' +
-            '.header-top-zone { position: relative; width: 100%; min-height: 68px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #000; padding-right: 74px; }' +
+            '.sheet-page { width: 100%; height: 204mm; max-height: 204mm; display: flex; flex-direction: column; justify-content: flex-start; overflow: hidden; }' +
+            '.header-top-zone { position: relative; width: 100%; min-height: 68px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #000; padding-right: 74px; flex-shrink: 0; }' +
             '.title-bar { text-align: center; font-size: 14pt; font-weight: 800; letter-spacing: 0.6px; }' +
             '.sheet-logo { position: absolute; top: 0; right: 2px; width: 66px; height: 68px; object-fit: contain; }' +
-            '.patient-info-bar { display: grid; grid-template-columns: 2.2fr 1fr 1.6fr 1.6fr; gap: 6px; align-items: center; padding: 5px 4px; font-size: 9.5pt; border-bottom: 1.5px solid #000; }' +
+            '.patient-info-bar { display: grid; grid-template-columns: 2.2fr 1fr 1.6fr 1.6fr; gap: 6px; align-items: center; padding: 5px 4px; font-size: 9.5pt; border-bottom: 1.5px solid #000; flex-shrink: 0; }' +
             '.patient-field { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
             '.patient-field.date-right { text-align: right; padding-right: 2px; }' +
             '.patient-field strong { font-weight: 800; }' +
             '.grid-table { width: 100%; flex: 1; border-collapse: collapse; table-layout: fixed; border: 1.5px solid #000; }' +
             '.grid-table th, .grid-table td { border: 1px solid #000; padding: 1px 2px; height: ' + rowHeightMm.toFixed(2) + 'mm; font-size: ' + baseFontPt.toFixed(1) + 'pt; line-height: 1; overflow: hidden; vertical-align: middle; }' +
-            '.grid-table thead th { background-color: #cbd5e1; font-size: ' + headerFontPt.toFixed(1) + 'pt; font-weight: 800; text-align: center; height: 6.8mm; }' +
+            /* Tanto el encabezado de MEDICAMENTO como la fila de TRATAMIENTO TEMPORAL comparten el mismo gris claro (#e2e8f0) */
+            '.grid-table thead th { background-color: #e2e8f0 !important; color: #000 !important; font-size: ' + headerFontPt.toFixed(1) + 'pt; font-weight: 800; text-align: center; height: 6.5mm; }' +
             '.col-hora { width: 54px; max-width: 54px; text-align: center; font-weight: 700; white-space: nowrap; padding: 1px !important; letter-spacing: -0.2px; }' +
             '.grid-table thead th.col-hora { font-size: 7.5pt !important; }' +
-            '.col-med { width: auto; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; padding: 1px 4px !important; }' +
+            '.col-med { width: auto; text-align: left; white-space: nowrap; overflow: hidden; font-weight: 600; padding: 1px 4px !important; }' +
             '.col-dosis { width: 37px; max-width: 37px; text-align: center; font-weight: 700; white-space: nowrap; padding: 1px !important; letter-spacing: -0.2px; }' +
             '.grid-table thead th.col-dosis { font-size: 7pt !important; }' +
             '.col-day { width: 30px; min-width: 30px; text-align: center; font-weight: 700; padding: 0 !important; font-size: 7.5pt !important; }' +
-            '.section-divider-row td { background-color: #cbd5e1 !important; color: #000 !important; height: 6mm !important; font-weight: 800; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; }' +
+            '.section-divider-row td { background-color: #e2e8f0 !important; color: #000 !important; height: 5.8mm !important; font-weight: 800; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; }' +
             '.section-title-cell { text-align: center !important; font-size: ' + headerFontPt.toFixed(1) + 'pt !important; letter-spacing: 0.4px; }' +
-            '.notes-row td { height: 9mm !important; vertical-align: middle; font-size: 9pt; padding: 2px 6px !important; }' +
-            '.notes-label { font-weight: 800; margin-right: 6px; }' +
+            '.notes-footer-box { width: 100%; min-height: 9.5mm; max-height: 12mm; border: 1.5px solid #000; border-top: none; padding: 3px 6px; font-size: 9pt; display: flex; align-items: center; background: #fff; flex-shrink: 0; overflow: hidden; }' +
+            '.notes-label { font-weight: 800; margin-right: 6px; white-space: nowrap; }' +
+            '.notes-content { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
           '</style>' +
         '</head>' +
         '<body>' +
@@ -2687,14 +2689,12 @@
               '<tbody>' +
                 medRowsHtml +
                 tempSectionHtml +
-                '<tr class="notes-row">' +
-                  '<td colspan="34">' +
-                    '<span class="notes-label">NOTAS:</span>' +
-                    '<span>' + escapeHtml(pacienteNota) + '</span>' +
-                  '</td>' +
-                '</tr>' +
               '</tbody>' +
             '</table>' +
+            '<div class="notes-footer-box">' +
+              '<span class="notes-label">NOTAS:</span>' +
+              '<span class="notes-content">' + escapeHtml(pacienteNota) + '</span>' +
+            '</div>' +
           '</div>' +
           '<script>' +
             'window.onload = function() { setTimeout(function() { window.print(); }, 300); };' +
