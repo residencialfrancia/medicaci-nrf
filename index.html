@@ -2522,26 +2522,26 @@
 
    function getMedicationCellFontSizePt(text, baseFontPt) {
       const len = String(text || '').length;
-      if (len > 75) return Math.max(4.2, baseFontPt - 3.8);
-      if (len > 60) return Math.max(4.8, baseFontPt - 3.2);
-      if (len > 45) return Math.max(5.4, baseFontPt - 2.5);
-      if (len > 30) return Math.max(6.2, baseFontPt - 1.6);
+      if (len > 75) return Math.max(4.0, baseFontPt - 3.6);
+      if (len > 60) return Math.max(4.6, baseFontPt - 3.0);
+      if (len > 45) return Math.max(5.2, baseFontPt - 2.3);
+      if (len > 30) return Math.max(6.0, baseFontPt - 1.4);
       return baseFontPt;
     }
 
     function getHoraCellFontSizePt(text, baseFontPt) {
       const len = String(text || '').length;
-      if (len > 9) return Math.min(6.0, baseFontPt);
-      if (len > 7) return Math.min(6.8, baseFontPt);
-      return Math.min(7.4, baseFontPt);
+      if (len > 9) return Math.min(5.8, baseFontPt);
+      if (len > 7) return Math.min(6.5, baseFontPt);
+      return Math.min(7.2, baseFontPt);
     }
 
     function getDosisCellFontSizePt(text, baseFontPt) {
       const len = String(text || '').length;
-      if (len > 9) return Math.min(5.0, baseFontPt);
-      if (len > 6) return Math.min(5.8, baseFontPt);
-      if (len > 4) return Math.min(6.6, baseFontPt);
-      return Math.min(7.4, baseFontPt);
+      if (len > 9) return Math.min(4.8, baseFontPt);
+      if (len > 6) return Math.min(5.6, baseFontPt);
+      if (len > 4) return Math.min(6.4, baseFontPt);
+      return Math.min(7.2, baseFontPt);
     }
 
     function executePrintSheet() {
@@ -2582,11 +2582,12 @@
 
       const logoUrl = new URL('Logo.png', window.location.href).href;
 
+      // Cálculo exacto para que hasta 28 filas + encabezado + divisor + NOTAS entren siempre en 1 sola hoja
       const totalDataRows = medRows.length + tempRows.length;
-      const usableTableHeightMm = 152;
-      const rowHeightMm = Math.max(4.4, Math.min(11.5, usableTableHeightMm / Math.max(1, totalDataRows)));
-      const baseFontPt  = Math.max(7.2, Math.min(11.0, rowHeightMm * 0.90));
-      const headerFontPt = Math.max(8.0, Math.min(10.5, baseFontPt + 0.5));
+      const usableTableHeightMm = 136;
+      const rowHeightMm = Math.max(3.8, Math.min(11.0, usableTableHeightMm / Math.max(1, totalDataRows)));
+      const baseFontPt  = Math.max(6.2, Math.min(10.5, rowHeightMm * 1.45));
+      const headerFontPt = Math.max(7.5, Math.min(10.0, baseFontPt + 0.5));
 
       let daysHeadersHtml = '';
       let emptyDaysCellsHtml = '';
@@ -2640,27 +2641,29 @@
             '@page { size: 355.6mm 215.9mm; margin: 3mm; }' +
             '* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
             'html, body { width: 100%; height: 100%; background: #fff; color: #000; }' +
-            '.sheet-page { width: 100%; height: 204mm; max-height: 204mm; display: flex; flex-direction: column; justify-content: flex-start; overflow: hidden; }' +
-            '.header-top-zone { position: relative; width: 100%; min-height: 68px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #000; padding-right: 74px; flex-shrink: 0; }' +
-            '.title-bar { text-align: center; font-size: 14pt; font-weight: 800; letter-spacing: 0.6px; }' +
+            /* Estructura Grid de 4 bloques donde la fila 4 (NOTAS) tiene reservados 8.5mm fijos e inamovibles */
+            '.sheet-page { width: 100%; height: 196mm; max-height: 196mm; display: grid; grid-template-rows: 68px auto 1fr 8.5mm; overflow: hidden; }' +
+            '.header-top-zone { position: relative; width: 100%; height: 68px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #000; padding-right: 74px; }' +
+            '.title-bar { text-align: center; font-size: 13.5pt; font-weight: 800; letter-spacing: 0.6px; }' +
             '.sheet-logo { position: absolute; top: 0; right: 2px; width: 66px; height: 68px; object-fit: contain; }' +
-            '.patient-info-bar { display: grid; grid-template-columns: 2.2fr 1fr 1.6fr 1.6fr; gap: 6px; align-items: center; padding: 5px 4px; font-size: 9.5pt; border-bottom: 1.5px solid #000; flex-shrink: 0; }' +
+            '.patient-info-bar { display: grid; grid-template-columns: 2.2fr 1fr 1.6fr 1.6fr; gap: 6px; align-items: center; padding: 4px 4px; font-size: 9pt; border-bottom: 1.5px solid #000; }' +
             '.patient-field { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
             '.patient-field.date-right { text-align: right; padding-right: 2px; }' +
             '.patient-field strong { font-weight: 800; }' +
-            '.grid-table { width: 100%; flex: 1; border-collapse: collapse; table-layout: fixed; border: 1.5px solid #000; }' +
-            '.grid-table th, .grid-table td { border: 1px solid #000; padding: 1px 2px; height: ' + rowHeightMm.toFixed(2) + 'mm; font-size: ' + baseFontPt.toFixed(1) + 'pt; line-height: 1; overflow: hidden; vertical-align: middle; }' +
-            /* Tanto el encabezado de MEDICAMENTO como la fila de TRATAMIENTO TEMPORAL comparten el mismo gris claro (#e2e8f0) */
-            '.grid-table thead th { background-color: #e2e8f0 !important; color: #000 !important; font-size: ' + headerFontPt.toFixed(1) + 'pt; font-weight: 800; text-align: center; height: 6.5mm; }' +
-            '.col-hora { width: 54px; max-width: 54px; text-align: center; font-weight: 700; white-space: nowrap; padding: 1px !important; letter-spacing: -0.2px; }' +
+            '.table-zone { width: 100%; height: 100%; overflow: hidden; }' +
+            '.grid-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; border: 1.5px solid #000; border-bottom: none; }' +
+            '.grid-table th, .grid-table td { border: 1px solid #000; padding: 0 2px; height: ' + rowHeightMm.toFixed(2) + 'mm; max-height: ' + rowHeightMm.toFixed(2) + 'mm; font-size: ' + baseFontPt.toFixed(1) + 'pt; line-height: 0.95; overflow: hidden; vertical-align: middle; }' +
+            /* Mismo gris claro (#e2e8f0) en el encabezado de MEDICAMENTO y en la fila de TRATAMIENTO TEMPORAL */
+            '.grid-table thead th { background-color: #e2e8f0 !important; color: #000 !important; font-size: ' + headerFontPt.toFixed(1) + 'pt; font-weight: 800; text-align: center; height: 5.5mm !important; max-height: 5.5mm !important; }' +
+            '.col-hora { width: 54px; max-width: 54px; text-align: center; font-weight: 700; white-space: nowrap; padding: 0 1px !important; letter-spacing: -0.2px; }' +
             '.grid-table thead th.col-hora { font-size: 7.5pt !important; }' +
-            '.col-med { width: auto; text-align: left; white-space: nowrap; overflow: hidden; font-weight: 600; padding: 1px 4px !important; }' +
-            '.col-dosis { width: 37px; max-width: 37px; text-align: center; font-weight: 700; white-space: nowrap; padding: 1px !important; letter-spacing: -0.2px; }' +
+            '.col-med { width: auto; text-align: left; white-space: nowrap; overflow: hidden; font-weight: 600; padding: 0 4px !important; }' +
+            '.col-dosis { width: 37px; max-width: 37px; text-align: center; font-weight: 700; white-space: nowrap; padding: 0 1px !important; letter-spacing: -0.2px; }' +
             '.grid-table thead th.col-dosis { font-size: 7pt !important; }' +
-            '.col-day { width: 30px; min-width: 30px; text-align: center; font-weight: 700; padding: 0 !important; font-size: 7.5pt !important; }' +
-            '.section-divider-row td { background-color: #e2e8f0 !important; color: #000 !important; height: 5.8mm !important; font-weight: 800; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; }' +
+            '.col-day { width: 30px; min-width: 30px; text-align: center; font-weight: 700; padding: 0 !important; font-size: 7.2pt !important; }' +
+            '.section-divider-row td { background-color: #e2e8f0 !important; color: #000 !important; height: 5.2mm !important; max-height: 5.2mm !important; font-weight: 800; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; }' +
             '.section-title-cell { text-align: center !important; font-size: ' + headerFontPt.toFixed(1) + 'pt !important; letter-spacing: 0.4px; }' +
-            '.notes-footer-box { width: 100%; min-height: 9.5mm; max-height: 12mm; border: 1.5px solid #000; border-top: none; padding: 3px 6px; font-size: 9pt; display: flex; align-items: center; background: #fff; flex-shrink: 0; overflow: hidden; }' +
+            '.notes-footer-box { width: 100%; height: 8.5mm; border: 1.5px solid #000; padding: 2px 6px; font-size: 8.8pt; display: flex; align-items: center; background: #fff; overflow: hidden; }' +
             '.notes-label { font-weight: 800; margin-right: 6px; white-space: nowrap; }' +
             '.notes-content { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
           '</style>' +
@@ -2677,20 +2680,22 @@
               '<div class="patient-field"><strong>ALERGIAS:</strong> ' + (pacienteAlergia ? escapeHtml(pacienteAlergia) : '………………………………………………') + '</div>' +
               '<div class="patient-field date-right"><strong>MES:</strong> ……………………… <strong>AÑO:</strong> ………………</div>' +
             '</div>' +
-            '<table class="grid-table">' +
-              '<thead>' +
-                '<tr>' +
-                  '<th class="col-hora">HORA</th>' +
-                  '<th class="col-med">MEDICAMENTO</th>' +
-                  '<th class="col-dosis">Dosis</th>' +
-                  daysHeadersHtml +
-                '</tr>' +
-              '</thead>' +
-              '<tbody>' +
-                medRowsHtml +
-                tempSectionHtml +
-              '</tbody>' +
-            '</table>' +
+            '<div class="table-zone">' +
+              '<table class="grid-table">' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th class="col-hora">HORA</th>' +
+                    '<th class="col-med">MEDICAMENTO</th>' +
+                    '<th class="col-dosis">Dosis</th>' +
+                    daysHeadersHtml +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                  medRowsHtml +
+                  tempSectionHtml +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
             '<div class="notes-footer-box">' +
               '<span class="notes-label">NOTAS:</span>' +
               '<span class="notes-content">' + escapeHtml(pacienteNota) + '</span>' +
