@@ -1,0 +1,3362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Medicación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-sidebar: #090d16;
+      --bg-sidebar-card: #131c2e;
+      --bg-sidebar-hover: #1e293b;
+      --bg-sidebar-active: #2563eb;
+      --text-sidebar: #f8fafc;
+      --text-sidebar-muted: #94a3b8;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #10b981;
+      --success-hover: #059669;
+      --warning: #f59e0b;
+      --warning-hover: #d97706;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --folder-inactive: #e2e8f0;
+      --folder-active: #ffffff;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* ==================== BARRA LATERAL IZQUIERDA ==================== */
+    .sidebar {
+      width: 300px;
+      min-width: 300px;
+      background: linear-gradient(180deg, #0b1120 0%, #0f172a 100%);
+      color: var(--text-sidebar);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      border-right: 1px solid #1e293b;
+      z-index: 20;
+      transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.collapsed {
+      margin-left: -300px;
+    }
+
+    .sidebar-header {
+      padding: 20px 18px 16px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sidebar-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sidebar-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-title::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #3b82f6;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #3b82f6;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-sidebar-icon {
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .btn-sidebar-icon:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid #334155;
+      background-color: rgba(15, 23, 42, 0.75);
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-box:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      background-color: #0f172a;
+    }
+
+    .search-box::placeholder {
+      color: var(--text-sidebar-muted);
+    }
+
+    .residents-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .residents-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .residents-list::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 999px;
+    }
+
+    .resident-card {
+      background-color: var(--bg-sidebar-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .resident-card:hover {
+      background-color: var(--bg-sidebar-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateX(3px);
+    }
+
+    .resident-card.active {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-color: #60a5fa;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+
+    .resident-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .resident-card .res-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .resident-card .res-socio {
+      font-size: 0.76rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .resident-card.active .res-socio {
+      color: #dbeafe;
+    }
+
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(9, 13, 22, 0.65);
+    }
+
+    .btn-sidebar-print {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #ffffff;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-sidebar-print:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-color: #60a5fa;
+      transform: translateY(-1px);
+    }
+
+    /* ==================== PANEL PRINCIPAL DERECHO ==================== */
+    .main-panel {
+      flex: 1;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 20px 28px 44px 28px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-app-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      gap: 12px;
+      background: #ffffff;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      flex-wrap: wrap;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .app-main-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .sync-status-badge {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+    }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      background: #fff;
+      padding: 48px 56px;
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--border-strong);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ==================== ENCABEZADO DEL RESIDENTE ==================== */
+    .resident-header {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .resident-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+    }
+
+    .header-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header-socio-left {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #1e40af;
+      background: #dbeafe;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #bfdbfe;
+      letter-spacing: 0.2px;
+    }
+
+    .header-names-right {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-left: auto;
+      text-align: right;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .header-fullname {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.15;
+      letter-spacing: -0.4px;
+    }
+
+    .header-nickname {
+      font-size: 1.12rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 10px;
+      border-radius: 999px;
+    }
+
+    .header-rows-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .header-row.row-4-cols {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .header-row.row-2-cols {
+      grid-template-columns: 1fr 2fr;
+    }
+
+    .header-row.row-1-col {
+      grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 1024px) {
+      .header-row.row-4-cols {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .header-row.row-2-cols {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .detail-item {
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .detail-item.editable-highlight {
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .detail-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.4px;
+    }
+
+    .detail-value {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .header-edit-input,
+    .header-edit-textarea {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--text-main);
+      background: #ffffff;
+      border: 1px solid #93c5fd;
+      border-radius: 6px;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+
+    .header-edit-textarea {
+      min-height: 58px;
+      resize: vertical;
+    }
+
+    /* ==================== SOLAPAS ESTILO CARPETA Y BOTONES ==================== */
+    .folder-actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 4px;
+      position: relative;
+      z-index: 5;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .folder-tabs {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .folder-tab {
+      padding: 12px 26px 11px 26px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #475569;
+      background-color: var(--folder-inactive);
+      border: 1px solid var(--border-strong);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      cursor: pointer;
+      position: relative;
+      margin-right: -10px;
+      transition: all 0.15s ease;
+      box-shadow: -2px -1px 4px rgba(0, 0, 0, 0.03);
+      user-select: none;
+    }
+
+    .folder-tab:first-child { z-index: 3; }
+    .folder-tab:nth-child(2) { z-index: 2; }
+    .folder-tab:nth-child(3) { z-index: 1; margin-right: 0; }
+
+    .folder-tab:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .folder-tab.active {
+      background-color: var(--folder-active);
+      color: var(--primary);
+      border-color: var(--border-color);
+      z-index: 10 !important;
+      padding-bottom: 13px;
+      margin-bottom: -1px;
+      box-shadow: 0 -3px 10px rgba(15, 23, 42, 0.05);
+    }
+
+    .right-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+    }
+    .btn-success:hover {
+      background-color: var(--success-hover);
+    }
+
+    .btn-warning {
+      background-color: var(--warning);
+      color: #fff;
+    }
+    .btn-warning:hover {
+      background-color: var(--warning-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: #fff;
+    }
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+
+    .btn-outline {
+      background-color: #fff;
+      color: #334155;
+      border: 1px solid var(--border-strong);
+    }
+    .btn-outline:hover {
+      background-color: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .btn-print {
+      background-color: #0f172a;
+      color: #ffffff;
+      border: 1px solid #1e293b;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+    }
+    .btn-print:hover {
+      background-color: #1e293b;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    /* ==================== CONTENEDOR DE LA CARPETA Y SUB-SECCIONES DIVIDIDAS ==================== */
+    .folder-body {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-md);
+      min-height: 360px;
+      position: relative;
+      z-index: 4;
+    }
+
+    .split-section-card {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: #ffffff;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      overflow: visible;
+    }
+
+    .split-section-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .split-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .split-section-header.temp-header {
+      background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%);
+      border-bottom-color: #bfdbfe;
+    }
+
+    .split-section-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .split-section-count {
+      font-size: 0.74rem;
+      font-weight: 700;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    /* BARRA DE DESPLAZAMIENTO HORIZONTAL SUPERIOR SIEMPRE VISIBLE */
+    .top-scrollbar-sync {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 8;
+    }
+
+    .top-scrollbar-sync::-webkit-scrollbar {
+      height: 10px;
+    }
+    .top-scrollbar-sync::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .top-scrollbar-sync::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 999px;
+    }
+    .top-scrollbar-sync::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+
+    .top-scrollbar-inner {
+      height: 1px;
+    }
+
+    /* CONTENEDOR DE TABLA CON SCROLL CONTROLADO Y ENCABEZADO FIJO */
+    .table-wrapper {
+      width: 100%;
+      max-height: 400px;
+      overflow-x: auto;
+      overflow-y: auto;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      position: relative;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+      height: 10px;
+      width: 8px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 999px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    table.view-mode-table {
+      min-width: 960px;
+    }
+
+    table.edit-mode-table {
+      min-width: 1460px;
+    }
+
+    th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      text-align: left;
+      padding: 11px 10px;
+      border-bottom: 2px solid var(--border-color);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 6;
+    }
+
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      color: #1e293b;
+    }
+
+    tr.single-line-row td {
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    tr.editing-row td {
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    /* MEDICAMENTO ARRIBA MÁS GRANDE Y DROGA DEBAJO MÁS PEQUEÑA */
+    .med-drug-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.2;
+    }
+
+    .med-name-top {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .drug-name-bottom {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.71rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .badge-activo {
+      background-color: #dcfce7;
+      color: #15803d;
+    }
+
+    .badge-pausado {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .badge-archivado {
+      background-color: #e2e8f0;
+      color: #475569;
+    }
+
+    .cell-input,
+    .cell-select {
+      width: 100%;
+      min-width: 115px;
+      padding: 6px 8px;
+      font-size: 0.79rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      color: #0f172a;
+      outline: none;
+    }
+
+    .cell-input:focus,
+    .cell-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .cell-input[readonly] {
+      background-color: #f1f5f9;
+      color: #64748b;
+      border-color: #e2e8f0;
+      cursor: not-allowed;
+    }
+
+    .schedule-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 160px;
+    }
+
+    .schedule-row {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .schedule-row input[type="text"] {
+      width: 64px;
+      padding: 5px 6px;
+      font-size: 0.76rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+    }
+
+    .schedule-row select {
+      padding: 5px;
+      font-size: 0.76rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+    }
+
+    /* LISTA DESPLEGABLE HACIA ABAJO PARA DÍAS A ADMINISTRAR */
+    .days-dropdown {
+      position: relative;
+      min-width: 165px;
+    }
+
+    .days-dropdown summary {
+      list-style: none;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .days-dropdown summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .days-dropdown summary::after {
+      content: '▼';
+      font-size: 0.65rem;
+      color: #64748b;
+    }
+
+    .days-dropdown[open] summary {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .days-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 40;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+    }
+
+    .days-dropdown-menu label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #1e293b;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .days-dropdown-menu label:hover {
+      background: #f1f5f9;
+    }
+
+    .row-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==================== OBSERVACIONES ==================== */
+    .obs-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .obs-form-card {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .obs-form-card textarea {
+      width: 100%;
+      min-height: 95px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    .obs-form-card textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .obs-form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .obs-form-footer input {
+      flex: 1;
+      min-width: 220px;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .obs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .obs-item {
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .obs-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      border-bottom: 1px dashed #e2e8f0;
+      padding-bottom: 6px;
+    }
+
+    .obs-text {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .obs-meta {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* ==================== MODALES EMERGENTES ==================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 540px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 18px 22px;
+      background: linear-gradient(90deg, #0f172a, #1e293b);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 1.02rem;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .modal-info-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .motivo-detail-box {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .motivo-detail-box.pausa-box {
+      border-left-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .motivo-detail-box.baja-box {
+      border-left-color: var(--danger);
+      background: #fef2f2;
+    }
+
+    .motivo-detail-box.reind-box {
+      border-left-color: var(--success);
+      background: #f0fdf4;
+    }
+
+    .motivo-detail-title {
+      font-size: 0.73rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .motivo-detail-text {
+      font-size: 0.88rem;
+      color: #0f172a;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .status-textarea {
+      width: 100%;
+      min-height: 90px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      resize: vertical;
+      outline: none;
+    }
+
+    .status-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .print-config-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: #f8fafc;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+
+    .print-config-label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .print-config-label strong {
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    .print-config-label span {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .print-number-input {
+      width: 82px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: center;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .print-capacity-bar {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .modal-footer {
+      padding: 14px 22px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* ==================== OVERLAY DE CARGA ==================== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .loading-box {
+      background: #0f172a;
+      padding: 20px 28px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #334155;
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- OVERLAY DE CARGA -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <span id="loadingText">Sincronizando datos con Google Sheets...</span>
+    </div>
+  </div>
+
+  <!-- MODAL EMERGENTE: VER MOTIVOS COMPLETOS -->
+  <div id="viewMotivoModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="viewMotivoModalTitle">Motivos Registrados</h3>
+        <button type="button" class="modal-close-btn" onclick="closeViewMotivoModal()">&times;</button>
+      </div>
+      <div id="viewMotivoModalBody" class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeViewMotivoModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EMERGENTE: CAMBIAR ESTADO (PAUSAR / REINDICAR / DAR DE BAJA) -->
+  <div id="statusActionModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="statusActionModalTitle">Gestionar Estado de Medicación / Tratamiento</h3>
+        <button type="button" class="modal-close-btn" onclick="closeStatusActionModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="statusActionMedSummary" class="modal-info-banner"></div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">
+            Acción a realizar:
+          </label>
+          <select id="statusActionSelect" class="cell-select" style="padding: 9px 12px; font-size: 0.88rem; font-weight: 600;" onchange="updateStatusActionPromptLabel()">
+          </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label id="statusActionMotivoLabel" style="font-size: 0.82rem; font-weight: 700; color: #334155;">
+            Motivo:
+          </label>
+          <textarea
+            id="statusActionMotivoInput"
+            class="status-textarea"
+            placeholder="Escribí el motivo detallado de esta acción..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeStatusActionModal()">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="confirmStatusActionModal()">✔ Confirmar y Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EMERGENTE: CONFIGURACIÓN DE IMPRESIÓN -->
+  <div id="printConfigModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="printModalTitle">Configurar Planilla de Impresión (Hoja Oficio)</h3>
+        <button type="button" class="modal-close-btn" onclick="closePrintModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="printModalSummary" class="modal-info-banner"></div>
+
+        <div class="print-config-row">
+          <div class="print-config-label">
+            <strong id="labelBlankMed">Filas en blanco debajo de "MEDICAMENTO"</strong>
+            <span id="subLabelBlankMed">Filas vacías para completar a mano en la sección Medicamento</span>
+          </div>
+          <input
+            type="number"
+            id="inputBlankMedRows"
+            class="print-number-input"
+            min="0"
+            max="28"
+            value="10"
+            oninput="validatePrintRowLimits('med')"
+          />
+        </div>
+
+        <div class="print-config-row">
+          <div class="print-config-label">
+            <strong id="labelBlankTemp">Filas en blanco debajo de "TRATAMIENTO TEMPORAL"</strong>
+            <span id="subLabelBlankTemp">Filas vacías para completar a mano en Tratamiento Temporal</span>
+          </div>
+          <input
+            type="number"
+            id="inputBlankTempRows"
+            class="print-number-input"
+            min="0"
+            max="28"
+            value="6"
+            oninput="validatePrintRowLimits('temp')"
+          />
+        </div>
+
+        <div class="print-capacity-bar">
+          <span>Total de filas del cuadro en la hoja Oficio:</span>
+          <strong id="printTotalRowsCounter">16 / 28 máx.</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closePrintModal()">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="executePrintSheet()">🖨️ Generar e Imprimir en Hoja Oficio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA LATERAL IZQUIERDA -->
+  <aside id="sidebarPanel" class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title-row">
+        <span class="sidebar-title">Residentes Activos</span>
+        <div class="sidebar-actions">
+          <button class="btn-sidebar-icon" onclick="fetchAllData(false, true)" title="Sincronizar con Sheet Maestro">↻</button>
+          <button class="btn-sidebar-icon" onclick="toggleSidebar()" title="Esconder barra lateral">◀ Ocultar</button>
+        </div>
+      </div>
+      <div class="search-wrapper">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-box"
+          placeholder="Buscar por nombre o N° socio..."
+          oninput="renderSidebar()"
+        />
+      </div>
+    </div>
+
+    <div id="residentsList" class="residents-list"></div>
+
+    <div class="sidebar-footer">
+      <button type="button" class="btn-sidebar-print" onclick="openBlankPrintModal()">
+        🖨️ Imprimir Planilla en Blanco
+      </button>
+    </div>
+  </aside>
+
+  <!-- PANEL PRINCIPAL DERECHO -->
+  <main class="main-panel">
+    <div class="top-app-bar">
+      <div class="top-bar-left">
+        <button id="btnOpenSidebar" class="btn btn-outline hidden" onclick="toggleSidebar()">
+          ☰ Residentes Activos
+        </button>
+        <h1 class="app-main-title">Gestor de Medicación</h1>
+      </div>
+      <span id="syncStatusBadge" class="sync-status-badge">Conectando...</span>
+    </div>
+
+    <div id="emptyResidentState" class="empty-state">
+      <h2>Seleccioná un residente en la barra lateral izquierda</h2>
+      <p style="margin-top: 8px; font-size: 0.9rem;">
+        Se mostrarán sus datos personales, obras sociales, alergias, diagnóstico, notas y medicación.
+      </p>
+    </div>
+
+    <div id="residentWorkspace" class="hidden">
+      <section id="residentHeader" class="resident-header"></section>
+
+      <div class="folder-actions-bar">
+        <div class="folder-tabs">
+          <div id="tabBtnActiva" class="folder-tab active" onclick="switchTab('activa')">
+            Medicación activa
+          </div>
+          <div id="tabBtnArchivada" class="folder-tab" onclick="switchTab('archivada')">
+            Medicación archivada
+          </div>
+          <div id="tabBtnObservaciones" class="folder-tab" onclick="switchTab('observaciones')">
+            Observaciones
+          </div>
+        </div>
+
+        <div class="right-actions">
+          <button id="btnPrintResident" type="button" class="btn btn-print" onclick="openResidentPrintModal()">
+            🖨️ Imprimir Planilla
+          </button>
+          <button id="btnStartEdit" class="btn btn-primary" onclick="enableMedicationEdit()">
+            ✎ Editar Medicación
+          </button>
+          <button id="btnSaveEdit" class="btn btn-success hidden" onclick="saveMedicationChanges()">
+            ✔ Guardar / Actualizar cambios
+          </button>
+          <button id="btnCancelEdit" class="btn btn-outline hidden" onclick="cancelMedicationEdit()">
+            ✖ Cancelar
+          </button>
+        </div>
+      </div>
+
+      <section class="folder-body">
+        <!-- VISTA 1: MEDICACIÓN ACTIVA DIVIDIDA EN 2 APARTADOS INDEPENDIENTES -->
+        <div id="viewActiva">
+          <!-- APARTADO 1: MEDICACIÓN HABITUAL / PERMANENTE -->
+          <div class="split-section-card">
+            <div class="split-section-header">
+              <div class="split-section-title">
+                <span>💊 Medicación</span>
+                <span id="badgeCountMedRegular" class="split-section-count">0</span>
+              </div>
+              <button
+                id="btnAddRegularMed"
+                type="button"
+                class="btn btn-primary btn-sm hidden"
+                onclick="addNewMedicationRow('Medicación')"
+              >
+                + Agregar Medicación
+              </button>
+            </div>
+            <div id="topScrollMedRegular" class="top-scrollbar-sync" onscroll="syncHorizontalScroll('topScrollMedRegular', 'wrapMedRegular')">
+              <div id="topScrollInnerMedRegular" class="top-scrollbar-inner"></div>
+            </div>
+            <div id="wrapMedRegular" class="table-wrapper" onscroll="syncHorizontalScroll('wrapMedRegular', 'topScrollMedRegular')">
+              <table id="tableMedRegular" class="view-mode-table">
+                <thead id="theadMedRegular"></thead>
+                <tbody id="tbodyMedRegular"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- APARTADO 2: TRATAMIENTOS TEMPORALES -->
+          <div class="split-section-card">
+            <div class="split-section-header temp-header">
+              <div class="split-section-title">
+                <span>⏱️ Tratamientos Temporales</span>
+                <span id="badgeCountMedTemp" class="split-section-count">0</span>
+              </div>
+              <button
+                id="btnAddTempMed"
+                type="button"
+                class="btn btn-primary btn-sm hidden"
+                onclick="addNewMedicationRow('Tratamiento temporal')"
+              >
+                + Agregar Tratamiento Temporal
+              </button>
+            </div>
+            <div id="topScrollMedTemp" class="top-scrollbar-sync" onscroll="syncHorizontalScroll('topScrollMedTemp', 'wrapMedTemp')">
+              <div id="topScrollInnerMedTemp" class="top-scrollbar-inner"></div>
+            </div>
+            <div id="wrapMedTemp" class="table-wrapper" onscroll="syncHorizontalScroll('wrapMedTemp', 'topScrollMedTemp')">
+              <table id="tableMedTemp" class="view-mode-table">
+                <thead id="theadMedTemp"></thead>
+                <tbody id="tbodyMedTemp"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 2: MEDICACIÓN ARCHIVADA -->
+        <div id="viewArchivada" class="hidden">
+          <div class="split-section-card">
+            <div class="split-section-header">
+              <div class="split-section-title">
+                <span>📁 Historial de Medicación y Tratamientos Archivados</span>
+                <span id="badgeCountArchivada" class="split-section-count">0</span>
+              </div>
+            </div>
+            <div id="topScrollArchivada" class="top-scrollbar-sync" onscroll="syncHorizontalScroll('topScrollArchivada', 'wrapArchivada')">
+              <div id="topScrollInnerArchivada" class="top-scrollbar-inner"></div>
+            </div>
+            <div id="wrapArchivada" class="table-wrapper" onscroll="syncHorizontalScroll('wrapArchivada', 'topScrollArchivada')">
+              <table id="tableMedArchivada" class="view-mode-table">
+                <thead id="theadMedArchivada"></thead>
+                <tbody id="tbodyMedArchivada"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 3: OBSERVACIONES -->
+        <div id="viewObservaciones" class="hidden">
+          <div class="obs-header">
+            <h3 style="font-size: 1rem; font-weight: 700;">Registro de Observaciones del Residente</h3>
+            <button class="btn btn-primary" onclick="toggleObsForm()">
+              + Agregar observación
+            </button>
+          </div>
+
+          <div id="obsFormBox" class="obs-form-card hidden">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #334155;">
+              Detalle de la observación (Fecha, Hora e ID se registran automáticamente):
+            </label>
+            <textarea
+              id="obsTextInput"
+              placeholder="Escribí acá los detalles o evolución del residente..."
+            ></textarea>
+            <div class="obs-form-footer">
+              <input
+                type="text"
+                id="obsProfInput"
+                placeholder="Nombre del Profesional que realiza la observación..."
+              />
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline" onclick="toggleObsForm(false)">
+                  Cancelar
+                </button>
+                <button class="btn btn-success" onclick="submitNewObservation()">
+                  Guardar observación
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="obsListContainer" class="obs-list"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // URL DE LA WEB APP DE GOOGLE APPS SCRIPT
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwDMYIpP9Mt0lMQRzXCgp9FxQFLC70pLizIcVcHt4PC9dtFdMYUClkGee41SRi0qPT4/exec';
+
+    let appData = {
+      residentes: [],
+      medicacionActiva: [],
+      medicacionArchivada: [],
+      observaciones: [],
+      profesionales: []
+    };
+
+    let selectedNroSocio = null;
+    let currentTab = 'activa';
+    let isEditingMed = false;
+    let isEditingHeader = false;
+    let draftActiveMeds = [];
+    let draftArchivedMeds = [];
+    let isFetchingData = false;
+
+    // Contexto del modal de cambio de estado (Pausar / Reindicar / Dar de baja)
+    let statusModalContext = null;
+
+    // Estado del modal de impresión ('blank' o 'resident')
+    let printModalMode = 'blank';
+    let printPrefilledMeds = [];
+    let printPrefilledTemps = [];
+    const MAX_OFICIO_TOTAL_ROWS = 28;
+
+    const FORMAS_FARMACEUTICAS_1 = ['Sólido', 'Líquido', 'Semisólido'];
+
+    const FORMAS_FARMACEUTICAS_2_MAP = {
+      'Sólido': ['Pastillas', 'Comprimido', 'Cápsula', 'Polvo', 'etc'],
+      'Líquido': ['Gotas', 'Jarabe', 'Soluciones', 'Inyectables'],
+      'Semisólido': ['Crema', 'Pomada', 'Geles', 'Pastas']
+    };
+
+    const DIAS_OPCIONES = [
+      'Todos los dias',
+      'Lunes',
+      'Martes',
+      'Miercoles',
+      'Jueves',
+      'Viernes',
+      'Sabado',
+      'Domingo'
+    ];
+
+    function normalizeForma1Key(val) {
+      const s = String(val || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      if (s.indexOf('semisolido') !== -1) return 'Semisólido';
+      if (s.indexOf('liquido') !== -1) return 'Líquido';
+      if (s.indexOf('solido') !== -1) return 'Sólido';
+      return 'Sólido';
+    }
+
+    function getOpcionesForma2(forma1Val) {
+      const key = normalizeForma1Key(forma1Val);
+      return FORMAS_FARMACEUTICAS_2_MAP[key] || FORMAS_FARMACEUTICAS_2_MAP['Sólido'];
+    }
+
+    function isTemporalItem(item) {
+      const tipo = String(item.tipoIndicacion || '').toLowerCase();
+      if (tipo.indexOf('temporal') !== -1) return true;
+      if (!tipo && (item.fechaInicioTratamiento || item.fechaFinTratamiento)) return true;
+      return false;
+    }
+
+    // Sincronización de barras de desplazamiento horizontal superior e inferior
+    let isSyncingScroll = false;
+    function syncHorizontalScroll(sourceId, targetId) {
+      if (isSyncingScroll) return;
+      isSyncingScroll = true;
+      const src = document.getElementById(sourceId);
+      const tgt = document.getElementById(targetId);
+      if (src && tgt) {
+        tgt.scrollLeft = src.scrollLeft;
+      }
+      requestAnimationFrame(function() {
+        isSyncingScroll = false;
+      });
+    }
+
+    function refreshAllTopScrollbars() {
+      requestAnimationFrame(function() {
+        const pairs = [
+          { tableId: 'tableMedRegular', innerId: 'topScrollInnerMedRegular', topId: 'topScrollMedRegular', wrapId: 'wrapMedRegular' },
+          { tableId: 'tableMedTemp', innerId: 'topScrollInnerMedTemp', topId: 'topScrollMedTemp', wrapId: 'wrapMedTemp' },
+          { tableId: 'tableMedArchivada', innerId: 'topScrollInnerArchivada', topId: 'topScrollArchivada', wrapId: 'wrapArchivada' }
+        ];
+        pairs.forEach(function(p) {
+          const tbl = document.getElementById(p.tableId);
+          const inner = document.getElementById(p.innerId);
+          const topBar = document.getElementById(p.topId);
+          const wrap = document.getElementById(p.wrapId);
+          if (tbl && inner && topBar && wrap) {
+            const scrollW = tbl.scrollWidth;
+            inner.style.width = scrollW + 'px';
+            topBar.style.display = scrollW > wrap.clientWidth + 4 ? 'block' : 'none';
+          }
+        });
+      });
+    }
+
+    window.addEventListener('resize', refreshAllTopScrollbars);
+
+    // Cerrar desplegables de días al hacer clic fuera
+    document.addEventListener('click', function(e) {
+      document.querySelectorAll('details.days-dropdown[open]').forEach(function(el) {
+        if (!el.contains(e.target)) {
+          el.removeAttribute('open');
+        }
+      });
+    });
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebarPanel');
+      const btnOpen = document.getElementById('btnOpenSidebar');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      btnOpen.classList.toggle('hidden', !isCollapsed);
+      setTimeout(refreshAllTopScrollbars, 300);
+    }
+
+    function showLoading(msg) {
+      document.getElementById('loadingText').textContent = msg || 'Sincronizando datos con Google Sheets...';
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    function setSyncBadge(text, isError) {
+      const badge = document.getElementById('syncStatusBadge');
+      if (!badge) return;
+      badge.textContent = text;
+      badge.style.background = isError ? '#fee2e2' : '#dcfce7';
+      badge.style.color = isError ? '#b91c1c' : '#15803d';
+      badge.style.borderColor = isError ? '#fecaca' : '#bbf7d0';
+    }
+
+    function escapeHtml(str) {
+      return String(str !== null && str !== undefined ? str : '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function getTodayDDMMYYYY() {
+      const d = new Date();
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return dd + '/' + mm + '/' + yyyy;
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      const cached = localStorage.getItem('rf_med_cache_v9');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && Array.isArray(parsed.residentes) && parsed.residentes.length > 0) {
+            appData = parsed;
+            renderSidebar();
+            selectResident(appData.residentes[0].nroSocio, true);
+            setSyncBadge('Actualizando en segundo plano...', false);
+            fetchAllData(true, false);
+            startAutoSyncTimer();
+            return;
+          }
+        } catch (e) {
+          localStorage.removeItem('rf_med_cache_v9');
+        }
+      }
+
+      fetchAllData(false, false);
+      startAutoSyncTimer();
+    });
+
+    function startAutoSyncTimer() {
+      setInterval(function() {
+        const obsFormHidden = document.getElementById('obsFormBox').classList.contains('hidden');
+        const printModalHidden = document.getElementById('printConfigModal').classList.contains('hidden');
+        const statusModalHidden = document.getElementById('statusActionModal').classList.contains('hidden');
+        if (!isEditingMed && !isEditingHeader && obsFormHidden && printModalHidden && statusModalHidden && !isFetchingData) {
+          fetchAllData(true, false);
+        }
+      }, 60000);
+    }
+
+    async function fetchAllData(silent, forceMasterSync) {
+      if (isFetchingData) return;
+      isFetchingData = true;
+
+      if (!silent) {
+        showLoading(
+          forceMasterSync
+            ? 'Sincronizando con Sheet Maestro de Residentes...'
+            : 'Cargando datos de Google Sheets...'
+        );
+      } else {
+        setSyncBadge('Sincronizando...', false);
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(function() { controller.abort(); }, 60000);
+
+      try {
+        const syncParam = forceMasterSync ? '&sync=1' : '';
+        const urlWithTs = API_URL + '?t=' + Date.now() + syncParam;
+        const res = await fetch(urlWithTs, {
+          method: 'GET',
+          redirect: 'follow',
+          signal: controller.signal
+        });
+
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (parseErr) {
+          throw new Error(
+            'La Web App de Google devolvió una página de permiso o versión antigua. En Apps Script andá a Implementar > Administrar implementaciones > Editar (lápiz) > Nueva versión > Implementar.'
+          );
+        }
+
+        if (json.status !== 'ok') {
+          throw new Error(json.message || 'Error al obtener datos del Sheet');
+        }
+
+        appData = json.data || {
+          residentes: [],
+          medicacionActiva: [],
+          medicacionArchivada: [],
+          observaciones: [],
+          profesionales: []
+        };
+
+        localStorage.setItem('rf_med_cache_v9', JSON.stringify(appData));
+        renderSidebar();
+
+        if (selectedNroSocio) {
+          const currentRes = (appData.residentes || []).find(function(r) {
+            return String(r.nroSocio) === String(selectedNroSocio);
+          });
+          if (currentRes) {
+            if (!isEditingHeader) {
+              renderResidentHeader(currentRes);
+            }
+            if (!isEditingMed) {
+              if (currentTab === 'activa') renderActiveMedicationsTable();
+              if (currentTab === 'archivada') renderArchivedMedicationsTable();
+              if (currentTab === 'observaciones') renderObservationsView();
+            }
+          } else if (appData.residentes.length > 0) {
+            selectResident(appData.residentes[0].nroSocio, true);
+          }
+        } else if (appData.residentes.length > 0) {
+          selectResident(appData.residentes[0].nroSocio, true);
+        }
+
+        const nowTime = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        setSyncBadge('Sincronizado (' + nowTime + ')', false);
+      } catch (err) {
+        console.error('Error de sincronización:', err);
+        setSyncBadge('Reintentando conexión...', true);
+        if (!silent) {
+          const msg = err.name === 'AbortError'
+            ? 'Google Sheets tardó demasiado en responder. Tocá el botón ↻ arriba a la izquierda para reintentar.'
+            : err.message;
+          alert('Aviso al conectar con Google Sheets:\n\n' + msg);
+        }
+      } finally {
+        clearTimeout(timeoutId);
+        isFetchingData = false;
+        hideLoading();
+      }
+    }
+
+    function renderSidebar() {
+      const container = document.getElementById('residentsList');
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      const filtered = (appData.residentes || []).filter(function(r) {
+        const nombre = String(r.nombre || '').toLowerCase();
+        const completo = String(r.nombreCompleto || '').toLowerCase();
+        const socio = String(r.nroSocio || '').toLowerCase();
+        return !query || nombre.includes(query) || completo.includes(query) || socio.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.84rem; text-align:center; padding:22px;">No se encontraron residentes activos</div>';
+        return;
+      }
+
+      container.innerHTML = filtered
+        .map(function(r) {
+          const isActive = String(r.nroSocio) === String(selectedNroSocio);
+          return (
+            '<div class="resident-card ' + (isActive ? 'active' : '') + '" onclick="selectResident(\'' + escapeHtml(r.nroSocio) + '\')">' +
+              '<div class="resident-card-info">' +
+                '<div class="res-name">' + escapeHtml(r.nombre || r.nombreCompleto) + '</div>' +
+                '<div class="res-socio">Socio #' + escapeHtml(r.nroSocio || '-') + '</div>' +
+              '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+
+    function selectResident(nroSocio, keepCurrentTab) {
+      if (isEditingMed) {
+        const confirmLeave = confirm('Tenés cambios sin guardar en Medicación Activa. ¿Querés descartarlos y cambiar de residente?');
+        if (!confirmLeave) return;
+        isEditingMed = false;
+        updateEditButtonsUI();
+      }
+      if (isEditingHeader) {
+        isEditingHeader = false;
+      }
+
+      selectedNroSocio = String(nroSocio);
+      renderSidebar();
+
+      const resident = (appData.residentes || []).find(function(r) {
+        return String(r.nroSocio) === String(selectedNroSocio);
+      });
+
+      if (!resident) return;
+
+      document.getElementById('emptyResidentState').classList.add('hidden');
+      document.getElementById('residentWorkspace').classList.remove('hidden');
+
+      renderResidentHeader(resident);
+
+      if (!keepCurrentTab) {
+        switchTab('activa');
+      } else {
+        switchTab(currentTab);
+      }
+    }
+
+    // ==================== ENCABEZADO DEL RESIDENTE Y EDICIÓN DE DX / NOTA ====================
+
+    function renderResidentHeader(r) {
+      const header = document.getElementById('residentHeader');
+      const apodoHtml = r.apodo ? '<span class="header-nickname">"' + escapeHtml(r.apodo) + '"</span>' : '';
+
+      const actionButtonsHtml = !isEditingHeader
+        ? '<button type="button" class="btn btn-outline btn-sm" onclick="enableHeaderEdit()">✎ Editar Encabezado</button>'
+        : (
+          '<button type="button" class="btn btn-success btn-sm" onclick="saveHeaderEdit()">✔ Guardar cambios</button>' +
+          '<button type="button" class="btn btn-outline btn-sm" onclick="cancelHeaderEdit()">✖ Cancelar</button>'
+        );
+
+      const dxContentHtml = isEditingHeader
+        ? '<input type="text" id="editHeaderDxInput" class="header-edit-input" value="' + escapeHtml(r.dx || '') + '" placeholder="Ingresar Dx - Diagnóstico..." />'
+        : '<span class="detail-value">' + escapeHtml(r.dx || '-') + '</span>';
+
+      const notaContentHtml = isEditingHeader
+        ? '<textarea id="editHeaderNotaInput" class="header-edit-textarea" placeholder="Ingresar nota del residente...">' + escapeHtml(r.nota || '') + '</textarea>'
+        : '<span class="detail-value">' + escapeHtml(r.nota || '-') + '</span>';
+
+      const editableClass = isEditingHeader ? ' editable-highlight' : '';
+
+      header.innerHTML =
+        '<div class="header-top-row">' +
+          '<div class="header-top-left">' +
+            '<div class="header-socio-left">N° de Socio: ' + escapeHtml(r.nroSocio || '-') + '</div>' +
+            actionButtonsHtml +
+          '</div>' +
+          '<div class="header-names-right">' +
+            '<span class="header-fullname">' + escapeHtml(r.nombreCompleto || r.nombre || '-') + '</span>' +
+            apodoHtml +
+          '</div>' +
+        '</div>' +
+
+        '<div class="header-rows-container">' +
+          '<div class="header-row row-4-cols">' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Género</span>' +
+              '<span class="detail-value">' + escapeHtml(r.genero || '-') + '</span>' +
+            '</div>' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Edad</span>' +
+              '<span class="detail-value">' + escapeHtml(r.edad || '-') + '</span>' +
+            '</div>' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">DNI</span>' +
+              '<span class="detail-value">' + escapeHtml(r.dni || '-') + '</span>' +
+            '</div>' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Fecha de Ingreso</span>' +
+              '<span class="detail-value">' + escapeHtml(r.fechaIngreso || '-') + '</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="header-row row-4-cols">' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Obra Social 1</span>' +
+              '<span class="detail-value">' + escapeHtml(r.obraSocial1 || '-') + '</span>' +
+            '</div>' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Número Obra Social 1</span>' +
+              '<span class="detail-value">' + escapeHtml(r.nroObraSocial1 || '-') + '</span>' +
+            '</div>' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Obra Social 2</span>' +
+              '<span class="detail-value">' + escapeHtml(r.obraSocial2 || '-') + '</span>' +
+            '</div>' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Número Obra Social 2</span>' +
+              '<span class="detail-value">' + escapeHtml(r.nroObraSocial2 || '-') + '</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="header-row row-2-cols">' +
+            '<div class="detail-item">' +
+              '<span class="detail-label">Alergias</span>' +
+              '<span class="detail-value">' + escapeHtml(r.alergias || 'Ninguna registrada') + '</span>' +
+            '</div>' +
+            '<div class="detail-item' + editableClass + '">' +
+              '<span class="detail-label">Dx - Diagnóstico</span>' +
+              dxContentHtml +
+            '</div>' +
+          '</div>' +
+
+          '<div class="header-row row-1-col">' +
+            '<div class="detail-item' + editableClass + '">' +
+              '<span class="detail-label">Nota</span>' +
+              notaContentHtml +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function enableHeaderEdit() {
+      const currentRes = (appData.residentes || []).find(function(r) {
+        return String(r.nroSocio) === String(selectedNroSocio);
+      });
+      if (!currentRes) return;
+      isEditingHeader = true;
+      renderResidentHeader(currentRes);
+      const dxInput = document.getElementById('editHeaderDxInput');
+      if (dxInput) dxInput.focus();
+    }
+
+    function cancelHeaderEdit() {
+      isEditingHeader = false;
+      const currentRes = (appData.residentes || []).find(function(r) {
+        return String(r.nroSocio) === String(selectedNroSocio);
+      });
+      if (currentRes) renderResidentHeader(currentRes);
+    }
+
+    async function saveHeaderEdit() {
+      const dxVal = document.getElementById('editHeaderDxInput') ? document.getElementById('editHeaderDxInput').value.trim() : '';
+      const notaVal = document.getElementById('editHeaderNotaInput') ? document.getElementById('editHeaderNotaInput').value.trim() : '';
+
+      showLoading('Guardando Dx y Nota en Google Sheets...');
+      try {
+        const payload = {
+          action: 'saveHeaderNotes',
+          nroSocio: selectedNroSocio,
+          dx: dxVal,
+          nota: notaVal
+        };
+
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+        if (json.status !== 'ok') {
+          throw new Error(json.message || 'No se pudieron guardar los datos del encabezado');
+        }
+
+        appData = json.data;
+        localStorage.setItem('rf_med_cache_v9', JSON.stringify(appData));
+        isEditingHeader = false;
+
+        const updatedRes = (appData.residentes || []).find(function(r) {
+          return String(r.nroSocio) === String(selectedNroSocio);
+        });
+        if (updatedRes) renderResidentHeader(updatedRes);
+        setSyncBadge('Encabezado guardado', false);
+      } catch (err) {
+        alert('Error al guardar el encabezado: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function switchTab(tabName) {
+      if (isEditingMed && tabName !== 'activa') {
+        const discard = confirm('Estás editando la Medicación Activa. ¿Querés salir sin guardar los cambios?');
+        if (!discard) return;
+        isEditingMed = false;
+        updateEditButtonsUI();
+      }
+
+      currentTab = tabName;
+
+      document.getElementById('tabBtnActiva').classList.toggle('active', tabName === 'activa');
+      document.getElementById('tabBtnArchivada').classList.toggle('active', tabName === 'archivada');
+      document.getElementById('tabBtnObservaciones').classList.toggle('active', tabName === 'observaciones');
+
+      document.getElementById('viewActiva').classList.toggle('hidden', tabName !== 'activa');
+      document.getElementById('viewArchivada').classList.toggle('hidden', tabName !== 'archivada');
+      document.getElementById('viewObservaciones').classList.toggle('hidden', tabName !== 'observaciones');
+
+      if (tabName === 'activa') {
+        renderActiveMedicationsTable();
+      } else if (tabName === 'archivada') {
+        renderArchivedMedicationsTable();
+      } else if (tabName === 'observaciones') {
+        renderObservationsView();
+      }
+    }
+
+    // ==================== MÓDULO: MEDICACIÓN ACTIVA (DIVIDIDA EN 2 APARTADOS) ====================
+
+    function enableMedicationEdit() {
+      if (currentTab !== 'activa') {
+        switchTab('activa');
+      }
+      isEditingMed = true;
+
+      draftActiveMeds = (appData.medicacionActiva || [])
+        .filter(function(m) { return String(m.nroSocio) === String(selectedNroSocio); })
+        .map(function(m) {
+          const copy = Object.assign({}, m);
+          copy.nroSocio = selectedNroSocio;
+          copy.idMedicacion = m.idMedicacion || '';
+          copy.tipoIndicacion = isTemporalItem(copy) ? 'Tratamiento temporal' : 'Medicación';
+          copy.formaFarmaceutica1 = normalizeForma1Key(copy.formaFarmaceutica1);
+          const opts2 = getOpcionesForma2(copy.formaFarmaceutica1);
+          if (!copy.formaFarmaceutica2 || !opts2.includes(copy.formaFarmaceutica2)) {
+            copy.formaFarmaceutica2 = copy.formaFarmaceutica2 || opts2[0];
+          }
+          copy.motivo = copy.motivo !== undefined ? copy.motivo : (copy.motivoPrescripcion || '');
+          return copy;
+        });
+      draftArchivedMeds = [];
+
+      updateEditButtonsUI();
+      renderActiveMedicationsTable();
+    }
+
+    function cancelMedicationEdit() {
+      isEditingMed = false;
+      draftActiveMeds = [];
+      draftArchivedMeds = [];
+      updateEditButtonsUI();
+      renderActiveMedicationsTable();
+    }
+
+    function updateEditButtonsUI() {
+      document.getElementById('btnStartEdit').classList.toggle('hidden', isEditingMed);
+      document.getElementById('btnPrintResident').classList.toggle('hidden', isEditingMed);
+      document.getElementById('btnSaveEdit').classList.toggle('hidden', !isEditingMed);
+      document.getElementById('btnCancelEdit').classList.toggle('hidden', !isEditingMed);
+
+      document.getElementById('btnAddRegularMed').classList.toggle('hidden', !isEditingMed);
+      document.getElementById('btnAddTempMed').classList.toggle('hidden', !isEditingMed);
+
+      document.getElementById('tableMedRegular').className = isEditingMed ? 'edit-mode-table' : 'view-mode-table';
+      document.getElementById('tableMedTemp').className = isEditingMed ? 'edit-mode-table' : 'view-mode-table';
+    }
+
+    function addNewMedicationRow(tipoEspecifico) {
+      const isTemp = String(tipoEspecifico || '').toLowerCase().indexOf('temporal') !== -1;
+      draftActiveMeds.push({
+        rowNumber: null,
+        nroSocio: selectedNroSocio,
+        tipoIndicacion: isTemp ? 'Tratamiento temporal' : 'Medicación',
+        nombreMedicamento: '',
+        nombreDroga: '',
+        formaFarmaceutica1: 'Sólido',
+        formaFarmaceutica2: 'Pastillas',
+        dosis: '',
+        unidadesPorToma: '',
+        frecuenciaHorario: '08:00 AM',
+        diasAdministrar: 'Todos los dias',
+        fechaInicioTratamiento: isTemp ? getTodayDDMMYYYY() : '',
+        fechaFinTratamiento: '',
+        medicoPrescriptor: '',
+        nroMatricula: '',
+        estadoIndicacion: 'Activo',
+        fechaPrescripcion: getTodayDDMMYYYY(),
+        fechaBajaPausa: '',
+        fechaCeseBaja: '',
+        idMedicacion: '',
+        motivo: '',
+        motivoPrescripcion: '',
+        motivoPausa: '',
+        fechaReindicacion: '',
+        motivoReindicacion: ''
+      });
+      renderActiveMedicationsTable();
+    }
+
+    function updateDraftField(index, field, value) {
+      const item = draftActiveMeds[index];
+      if (!item) return;
+      item[field] = value;
+
+      if (field === 'motivo') {
+        item.motivoPrescripcion = value;
+      }
+
+      if (field === 'formaFarmaceutica1') {
+        const normalized = normalizeForma1Key(value);
+        item.formaFarmaceutica1 = normalized;
+        const opciones2 = getOpcionesForma2(normalized);
+        item.formaFarmaceutica2 = opciones2[0] || '';
+        renderActiveMedicationsTable();
+      }
+
+      if (field === 'medicoPrescriptor') {
+        const foundProf = (appData.profesionales || []).find(function(p) {
+          return String(p.nombre).trim().toLowerCase() === String(value).trim().toLowerCase();
+        });
+        item.nroMatricula = foundProf ? foundProf.matricula : '';
+        renderActiveMedicationsTable();
+      }
+    }
+
+    function parseSchedules(str) {
+      if (!str || !String(str).trim()) return [{ time: '08:00', period: 'AM' }];
+      const re = new RegExp('^(.+?)\\s*(AM|PM)' + String.fromCharCode(36), 'i');
+      return String(str)
+        .split(',')
+        .map(function(part) {
+          const clean = part.trim();
+          const match = clean.match(re);
+          if (match) {
+            return { time: match[1].trim(), period: match[2].toUpperCase() };
+          }
+          return { time: clean, period: 'AM' };
+        });
+    }
+
+    function serializeSchedules(list) {
+      return list
+        .map(function(s) {
+          return ((s.time || '').trim() + ' ' + (s.period || 'AM')).trim();
+        })
+        .filter(Boolean)
+        .join(', ');
+    }
+
+    function changeSchedulePart(medIndex, schedIndex, key, val) {
+      const list = parseSchedules(draftActiveMeds[medIndex].frecuenciaHorario);
+      if (!list[schedIndex]) return;
+      list[schedIndex][key] = val;
+      draftActiveMeds[medIndex].frecuenciaHorario = serializeSchedules(list);
+    }
+
+    function addScheduleSlot(medIndex) {
+      const list = parseSchedules(draftActiveMeds[medIndex].frecuenciaHorario);
+      list.push({ time: '12:00', period: 'PM' });
+      draftActiveMeds[medIndex].frecuenciaHorario = serializeSchedules(list);
+      renderActiveMedicationsTable();
+    }
+
+    function removeScheduleSlot(medIndex, schedIndex) {
+      const list = parseSchedules(draftActiveMeds[medIndex].frecuenciaHorario);
+      if (list.length <= 1) return;
+      list.splice(schedIndex, 1);
+      draftActiveMeds[medIndex].frecuenciaHorario = serializeSchedules(list);
+      renderActiveMedicationsTable();
+    }
+
+    function parseSelectedDaysList(rawStr) {
+      const raw = String(rawStr || '');
+      const re = new RegExp('\\(Del\\s*([0-9/-]+)\\s*al\\s*([0-9/-]+)\\)', 'i');
+      const cleaned = raw.replace(re, '').trim();
+      return cleaned
+        .split(',')
+        .map(function(d) { return d.trim(); })
+        .filter(Boolean);
+    }
+
+    function toInputDate(dStr) {
+      if (!dStr) return '';
+      const clean = String(dStr).trim();
+      if (clean.indexOf('-') === 4 && clean.length === 10) return clean;
+      const parts = clean.split('/');
+      if (parts.length === 3) {
+        return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+      }
+      return '';
+    }
+
+    function formatInputDateToDDMMYYYY(isoStr) {
+      if (!isoStr) return '';
+      const parts = String(isoStr).trim().split('-');
+      if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
+      return isoStr;
+    }
+
+    function toggleDaySelection(medIndex, dayName, checked) {
+      const item = draftActiveMeds[medIndex];
+      let days = parseSelectedDaysList(item.diasAdministrar);
+
+      if (dayName === 'Todos los dias' && checked) {
+        days = ['Todos los dias'];
+      } else {
+        days = days.filter(function(d) { return d !== 'Todos los dias'; });
+        if (checked && !days.includes(dayName)) {
+          days.push(dayName);
+        } else if (!checked) {
+          days = days.filter(function(d) { return d !== dayName; });
+        }
+      }
+
+      item.diasAdministrar = days.length > 0 ? days.join(', ') : 'Todos los dias';
+      const summaryEl = document.getElementById('daysSummary_' + medIndex);
+      if (summaryEl) {
+        summaryEl.textContent = item.diasAdministrar;
+      }
+      // Si se tildó "Todos los dias", actualizar los demás checkboxes del menú desplegable sin cerrarlo
+      const menuEl = document.getElementById('daysMenu_' + medIndex);
+      if (menuEl) {
+        const inputs = menuEl.querySelectorAll('input[type="checkbox"]');
+        inputs.forEach(function(inp) {
+          const dVal = inp.getAttribute('data-day');
+          inp.checked = days.includes(dVal);
+        });
+      }
+    }
+
+    function changeTreatmentDateColumn(medIndex, fieldName, isoVal) {
+      const item = draftActiveMeds[medIndex];
+      if (!item) return;
+      item[fieldName] = formatInputDateToDDMMYYYY(isoVal);
+    }
+
+    function renderActiveMedicationsTable() {
+      const theadReg  = document.getElementById('theadMedRegular');
+      const tbodyReg  = document.getElementById('tbodyMedRegular');
+      const theadTemp = document.getElementById('theadMedTemp');
+      const tbodyTemp = document.getElementById('tbodyMedTemp');
+
+      const sourceRows = isEditingMed
+        ? draftActiveMeds.map(function(m, idx) { return { item: m, index: idx }; })
+        : (appData.medicacionActiva || [])
+            .filter(function(m) { return String(m.nroSocio) === String(selectedNroSocio); })
+            .map(function(m, idx) { return { item: m, index: idx }; });
+
+      const regularEntries = sourceRows.filter(function(entry) { return !isTemporalItem(entry.item); });
+      const tempEntries    = sourceRows.filter(function(entry) { return isTemporalItem(entry.item); });
+
+      document.getElementById('badgeCountMedRegular').textContent = regularEntries.length;
+      document.getElementById('badgeCountMedTemp').textContent    = tempEntries.length;
+
+      if (!isEditingMed) {
+        // MODO VISTA: Columnas innecesarias ocultas y sin "Tipo de Indicación"
+        theadReg.innerHTML =
+          '<tr>' +
+            '<th>Estado</th>' +
+            '<th>Medicamento / Droga</th>' +
+            '<th>Presentación</th>' +
+            '<th>Concentración</th>' +
+            '<th>Dosis</th>' +
+            '<th>Frecuencia / Horario</th>' +
+            '<th>Días a administrar</th>' +
+            '<th>Profesional</th>' +
+            '<th>Motivo</th>' +
+            '<th>Acción</th>' +
+          '</tr>';
+
+        theadTemp.innerHTML =
+          '<tr>' +
+            '<th>Estado</th>' +
+            '<th>Tratamiento / Droga</th>' +
+            '<th>Presentación</th>' +
+            '<th>Concentración</th>' +
+            '<th>Dosis</th>' +
+            '<th>Frecuencia / Horario</th>' +
+            '<th>Días a administrar</th>' +
+            '<th>Inicio Tratamiento</th>' +
+            '<th>Fin Tratamiento</th>' +
+            '<th>Profesional</th>' +
+            '<th>Motivo</th>' +
+            '<th>Acción</th>' +
+          '</tr>';
+
+        tbodyReg.innerHTML = regularEntries.length === 0
+          ? '<tr><td colspan="10" style="text-align:center; padding: 22px; color: var(--text-muted);">No hay medicación habitual registrada para este residente.</td></tr>'
+          : regularEntries.map(function(entry) { return buildViewRowHtml(entry.item, false); }).join('');
+
+        tbodyTemp.innerHTML = tempEntries.length === 0
+          ? '<tr><td colspan="12" style="text-align:center; padding: 22px; color: var(--text-muted);">No hay tratamientos temporales activos para este residente.</td></tr>'
+          : tempEntries.map(function(entry) { return buildViewRowHtml(entry.item, true); }).join('');
+
+        refreshAllTopScrollbars();
+        return;
+      }
+
+      // MODO EDICIÓN: Sin "Tipo de Indicación", Medicación sin fechas de inicio/fin, Tratamiento temporal con fechas
+      theadReg.innerHTML =
+        '<tr>' +
+          '<th>Nombre del medicamento</th>' +
+          '<th>Nombre de la droga</th>' +
+          '<th>Forma Farmacéutica 1</th>' +
+          '<th>Forma Farmacéutica 2</th>' +
+          '<th>Concentración</th>' +
+          '<th>Dosis</th>' +
+          '<th>Frecuencia / Horario</th>' +
+          '<th>Días a administrar</th>' +
+          '<th>Médico Prescriptor</th>' +
+          '<th>N° Matrícula</th>' +
+          '<th>Motivo (Prescripción)</th>' +
+          '<th>Fecha Prescripción</th>' +
+          '<th>Acciones</th>' +
+        '</tr>';
+
+      theadTemp.innerHTML =
+        '<tr>' +
+          '<th>Nombre del medicamento</th>' +
+          '<th>Nombre de la droga</th>' +
+          '<th>Forma Farmacéutica 1</th>' +
+          '<th>Forma Farmacéutica 2</th>' +
+          '<th>Concentración</th>' +
+          '<th>Dosis</th>' +
+          '<th>Frecuencia / Horario</th>' +
+          '<th>Días a administrar</th>' +
+          '<th>Fecha Inicio Tratamiento</th>' +
+          '<th>Fecha Fin Tratamiento</th>' +
+          '<th>Médico Prescriptor</th>' +
+          '<th>N° Matrícula</th>' +
+          '<th>Motivo (Prescripción)</th>' +
+          '<th>Fecha Prescripción</th>' +
+          '<th>Acciones</th>' +
+        '</tr>';
+
+      tbodyReg.innerHTML = regularEntries.length === 0
+        ? '<tr><td colspan="13" style="text-align:center; padding: 22px; color: var(--text-muted);">Sin filas de medicación. Tocá "+ Agregar Medicación" arriba a la derecha.</td></tr>'
+        : regularEntries.map(function(entry) { return buildEditRowHtml(entry.item, entry.index, false); }).join('');
+
+      tbodyTemp.innerHTML = tempEntries.length === 0
+        ? '<tr><td colspan="15" style="text-align:center; padding: 22px; color: var(--text-muted);">Sin tratamientos temporales. Tocá "+ Agregar Tratamiento Temporal" arriba a la derecha.</td></tr>'
+        : tempEntries.map(function(entry) { return buildEditRowHtml(entry.item, entry.index, true); }).join('');
+
+      refreshAllTopScrollbars();
+    }
+
+    function buildViewRowHtml(m, isTempSection) {
+      const isPaused = String(m.estadoIndicacion).toLowerCase() === 'pausado';
+      const badgeClass = isPaused ? 'badge-pausado' : 'badge-activo';
+
+      const medHtml =
+        '<div class="med-drug-stack">' +
+          '<span class="med-name-top">' + escapeHtml(m.nombreMedicamento || '-') + '</span>' +
+          '<span class="drug-name-bottom">' + escapeHtml(m.nombreDroga || 'Sin droga especificada') + '</span>' +
+        '</div>';
+
+      const tempDatesCols = isTempSection
+        ? (
+          '<td><strong>' + escapeHtml(m.fechaInicioTratamiento || '-') + '</strong></td>' +
+          '<td><strong>' + escapeHtml(m.fechaFinTratamiento || '-') + '</strong></td>'
+        )
+        : '';
+
+      const itemKeyId = escapeHtml(m.idMedicacion || '');
+      const itemRowNum = Number(m.rowNumber) || 0;
+
+      return (
+        '<tr class="single-line-row">' +
+          '<td><span class="badge ' + badgeClass + '">' + escapeHtml(m.estadoIndicacion || 'Activo') + '</span></td>' +
+          '<td>' + medHtml + '</td>' +
+          '<td>' + escapeHtml(m.formaFarmaceutica2 || m.formaFarmaceutica1 || '-') + '</td>' +
+          '<td><strong>' + escapeHtml(m.dosis || '-') + '</strong></td>' +
+          '<td><strong>' + escapeHtml(m.unidadesPorToma || '-') + '</strong></td>' +
+          '<td>' + escapeHtml(m.frecuenciaHorario || '-') + '</td>' +
+          '<td>' + escapeHtml(m.diasAdministrar || '-') + '</td>' +
+          tempDatesCols +
+          '<td>' + escapeHtml(m.medicoPrescriptor || '-') + '</td>' +
+          '<td>' +
+            '<button type="button" class="btn btn-outline btn-sm" onclick="openViewMotivoModal(\'activa\', \'' + itemKeyId + '\', ' + itemRowNum + ')">' +
+              '👁 Ver motivo' +
+            '</button>' +
+          '</td>' +
+          '<td>' +
+            '<button type="button" class="btn btn-primary btn-sm" onclick="openStatusActionModal(\'activa\', \'' + itemKeyId + '\', ' + itemRowNum + ')">' +
+              '⚡ Estado / Acción' +
+            '</button>' +
+          '</td>' +
+        '</tr>'
+      );
+    }
+
+    function buildEditRowHtml(m, idx, isTempSection) {
+      const schedules = parseSchedules(m.frecuenciaHorario);
+      const selectedDays = parseSelectedDaysList(m.diasAdministrar);
+
+      const currentForma1 = normalizeForma1Key(m.formaFarmaceutica1);
+      const forma1OptionsHtml = FORMAS_FARMACEUTICAS_1.map(function(f1) {
+        const sel = currentForma1 === f1 ? 'selected' : '';
+        return '<option value="' + escapeHtml(f1) + '" ' + sel + '>' + escapeHtml(f1) + '</option>';
+      }).join('');
+
+      const listaOpciones2 = getOpcionesForma2(currentForma1).slice();
+      if (m.formaFarmaceutica2 && !listaOpciones2.includes(m.formaFarmaceutica2)) {
+        listaOpciones2.push(m.formaFarmaceutica2);
+      }
+      const forma2OptionsHtml = listaOpciones2.map(function(f2) {
+        const sel = String(m.formaFarmaceutica2) === String(f2) ? 'selected' : '';
+        return '<option value="' + escapeHtml(f2) + '" ' + sel + '>' + escapeHtml(f2) + '</option>';
+      }).join('');
+
+      let profOptions = '<option value="">-- Seleccionar profesional --</option>';
+      (appData.profesionales || []).forEach(function(p) {
+        const selected = String(p.nombre).trim() === String(m.medicoPrescriptor).trim() ? 'selected' : '';
+        const esp = p.especialidad ? ' (' + escapeHtml(p.especialidad) + ')' : '';
+        profOptions += '<option value="' + escapeHtml(p.nombre) + '" ' + selected + '>' + escapeHtml(p.nombre) + esp + '</option>';
+      });
+
+      const schedulesHtml = schedules.map(function(sc, sIdx) {
+        const btnRemove = schedules.length > 1
+          ? '<button type="button" class="btn btn-danger btn-sm" onclick="removeScheduleSlot(' + idx + ', ' + sIdx + ')" title="Quitar horario">&times;</button>'
+          : '';
+        return (
+          '<div class="schedule-row">' +
+            '<input type="text" value="' + escapeHtml(sc.time) + '" placeholder="08:00" oninput="changeSchedulePart(' + idx + ', ' + sIdx + ', \'time\', this.value)" />' +
+            '<select onchange="changeSchedulePart(' + idx + ', ' + sIdx + ', \'period\', this.value)">' +
+              '<option value="AM" ' + (sc.period === 'AM' ? 'selected' : '') + '>AM</option>' +
+              '<option value="PM" ' + (sc.period === 'PM' ? 'selected' : '') + '>PM</option>' +
+            '</select>' +
+            btnRemove +
+          '</div>'
+        );
+      }).join('');
+
+      const daysCheckboxesHtml = DIAS_OPCIONES.map(function(dia) {
+        const checked = selectedDays.includes(dia) ? 'checked' : '';
+        return (
+          '<label>' +
+            '<input type="checkbox" data-day="' + escapeHtml(dia) + '" ' + checked + ' onchange="toggleDaySelection(' + idx + ', \'' + dia + '\', this.checked)" /> ' +
+            dia +
+          '</label>'
+        );
+      }).join('');
+
+      const daysDropdownHtml =
+        '<details class="days-dropdown">' +
+          '<summary><span id="daysSummary_' + idx + '">' + escapeHtml(m.diasAdministrar || 'Todos los dias') + '</span></summary>' +
+          '<div id="daysMenu_' + idx + '" class="days-dropdown-menu">' +
+            daysCheckboxesHtml +
+          '</div>' +
+        '</details>';
+
+      const tempDateCellsHtml = isTempSection
+        ? (
+          '<td><input type="date" class="cell-input" value="' + escapeHtml(toInputDate(m.fechaInicioTratamiento)) + '" onchange="changeTreatmentDateColumn(' + idx + ', \'fechaInicioTratamiento\', this.value)" /></td>' +
+          '<td><input type="date" class="cell-input" value="' + escapeHtml(toInputDate(m.fechaFinTratamiento)) + '" onchange="changeTreatmentDateColumn(' + idx + ', \'fechaFinTratamiento\', this.value)" title="Solo se archivará cuando esta fecha ya se haya cumplido" /></td>'
+        )
+        : '';
+
+      const motivoVal = m.motivo !== undefined ? m.motivo : (m.motivoPrescripcion || '');
+
+      return (
+        '<tr class="editing-row">' +
+          '<td><input type="text" class="cell-input" value="' + escapeHtml(m.nombreMedicamento) + '" placeholder="Ej: Ibuprofeno" oninput="updateDraftField(' + idx + ', \'nombreMedicamento\', this.value)" /></td>' +
+          '<td><input type="text" class="cell-input" value="' + escapeHtml(m.nombreDroga) + '" placeholder="Droga / principio activo" oninput="updateDraftField(' + idx + ', \'nombreDroga\', this.value)" /></td>' +
+          '<td><select class="cell-select" onchange="updateDraftField(' + idx + ', \'formaFarmaceutica1\', this.value)">' + forma1OptionsHtml + '</select></td>' +
+          '<td><select class="cell-select" onchange="updateDraftField(' + idx + ', \'formaFarmaceutica2\', this.value)">' + forma2OptionsHtml + '</select></td>' +
+          '<td><input type="text" class="cell-input" value="' + escapeHtml(m.dosis) + '" placeholder="Ej: 400 mg" oninput="updateDraftField(' + idx + ', \'dosis\', this.value)" /></td>' +
+          '<td><input type="text" class="cell-input" value="' + escapeHtml(m.unidadesPorToma) + '" placeholder="Ej: 1, 1/2, 1/4" oninput="updateDraftField(' + idx + ', \'unidadesPorToma\', this.value)" /></td>' +
+          '<td><div class="schedule-editor">' + schedulesHtml + '<button type="button" class="btn btn-outline btn-sm" onclick="addScheduleSlot(' + idx + ')">+ Horario</button></div></td>' +
+          '<td>' + daysDropdownHtml + '</td>' +
+          tempDateCellsHtml +
+          '<td><select class="cell-select" onchange="updateDraftField(' + idx + ', \'medicoPrescriptor\', this.value)">' + profOptions + '</select></td>' +
+          '<td><input type="text" class="cell-input" value="' + escapeHtml(m.nroMatricula) + '" readonly title="Se autocompleta al elegir el profesional" /></td>' +
+          '<td><input type="text" class="cell-input" style="min-width:170px;" value="' + escapeHtml(motivoVal) + '" placeholder="Motivo de prescripción (opcional)" oninput="updateDraftField(' + idx + ', \'motivo\', this.value)" /></td>' +
+          '<td><input type="text" class="cell-input" value="' + escapeHtml(m.fechaPrescripcion || getTodayDDMMYYYY()) + '" readonly /></td>' +
+          '<td><button type="button" class="btn btn-danger btn-sm" onclick="removeOrArchiveDraftRow(' + idx + ')">Dar de baja</button></td>' +
+        '</tr>'
+      );
+    }
+
+    function removeOrArchiveDraftRow(index) {
+      const item = draftActiveMeds[index];
+      if (!item) return;
+
+      if (!item.rowNumber) {
+        draftActiveMeds.splice(index, 1);
+        renderActiveMedicationsTable();
+        return;
+      }
+
+      const motivoBaja = prompt(
+        'Ingresá el Motivo de Baja para archivar "' + (item.nombreMedicamento || 'esta indicación') + '":',
+        ''
+      );
+      if (motivoBaja === null) return;
+
+      item.fechaCeseBaja = getTodayDDMMYYYY();
+      item.motivoBaja = motivoBaja.trim();
+      draftArchivedMeds.push(item);
+      draftActiveMeds.splice(index, 1);
+      renderActiveMedicationsTable();
+    }
+
+    async function saveMedicationChanges() {
+      showLoading('Guardando cambios de medicación en Google Sheets...');
+      try {
+        const payload = {
+          action: 'saveMedications',
+          nroSocio: selectedNroSocio,
+          items: draftActiveMeds,
+          archived: draftArchivedMeds
+        };
+
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+        if (json.status !== 'ok') {
+          throw new Error(json.message || 'No se pudieron guardar los cambios');
+        }
+
+        appData = json.data;
+        localStorage.setItem('rf_med_cache_v9', JSON.stringify(appData));
+        isEditingMed = false;
+        draftActiveMeds = [];
+        draftArchivedMeds = [];
+        updateEditButtonsUI();
+        renderActiveMedicationsTable();
+        setSyncBadge('Cambios guardados', false);
+      } catch (err) {
+        alert('Error al guardar medicación: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ==================== MÓDULO: MEDICACIÓN ARCHIVADA ====================
+
+    function renderArchivedMedicationsTable() {
+      const thead = document.getElementById('theadMedArchivada');
+      const tbody = document.getElementById('tbodyMedArchivada');
+
+      thead.innerHTML =
+        '<tr>' +
+          '<th>Estado</th>' +
+          '<th>Medicamento / Droga</th>' +
+          '<th>Presentación</th>' +
+          '<th>Concentración</th>' +
+          '<th>Dosis</th>' +
+          '<th>Frecuencia / Horario</th>' +
+          '<th>Días</th>' +
+          '<th>Profesional</th>' +
+          '<th>Fecha de Baja</th>' +
+          '<th>Motivo</th>' +
+          '<th>Acción</th>' +
+        '</tr>';
+
+      const rows = (appData.medicacionArchivada || []).filter(function(m) {
+        return String(m.nroSocio) === String(selectedNroSocio);
+      });
+
+      document.getElementById('badgeCountArchivada').textContent = rows.length;
+
+      if (rows.length === 0) {
+        tbody.innerHTML =
+          '<tr>' +
+            '<td colspan="11" style="text-align:center; padding: 26px; color: var(--text-muted);">' +
+              'Este residente no tiene medicamentos ni tratamientos archivados.' +
+            '</td>' +
+          '</tr>';
+        refreshAllTopScrollbars();
+        return;
+      }
+
+      tbody.innerHTML = rows
+        .map(function(m) {
+          const medHtml =
+            '<div class="med-drug-stack">' +
+              '<span class="med-name-top">' + escapeHtml(m.nombreMedicamento || '-') + '</span>' +
+              '<span class="drug-name-bottom">' + escapeHtml(m.nombreDroga || 'Sin droga especificada') + '</span>' +
+            '</div>';
+
+          const itemKeyId = escapeHtml(m.idMedicacion || '');
+          const itemRowNum = Number(m.rowNumber) || 0;
+
+          return (
+            '<tr class="single-line-row">' +
+              '<td><span class="badge badge-archivado">' + escapeHtml(m.estadoIndicacion || 'Archivado') + '</span></td>' +
+              '<td>' + medHtml + '</td>' +
+              '<td>' + escapeHtml(m.formaFarmaceutica2 || m.formaFarmaceutica1 || '-') + '</td>' +
+              '<td><strong>' + escapeHtml(m.dosis || '-') + '</strong></td>' +
+              '<td><strong>' + escapeHtml(m.unidadesPorToma || '-') + '</strong></td>' +
+              '<td>' + escapeHtml(m.frecuenciaHorario || '-') + '</td>' +
+              '<td>' + escapeHtml(m.diasAdministrar || '-') + '</td>' +
+              '<td>' + escapeHtml(m.medicoPrescriptor || '-') + '</td>' +
+              '<td><strong>' + escapeHtml(m.fechaCeseBaja || '-') + '</strong></td>' +
+              '<td>' +
+                '<button type="button" class="btn btn-outline btn-sm" onclick="openViewMotivoModal(\'archivada\', \'' + itemKeyId + '\', ' + itemRowNum + ')">' +
+                  '👁 Ver motivo' +
+                '</button>' +
+              '</td>' +
+              '<td>' +
+                '<button type="button" class="btn btn-primary btn-sm" onclick="openStatusActionModal(\'archivada\', \'' + itemKeyId + '\', ' + itemRowNum + ')">' +
+                  '↺ Reindicar' +
+                '</button>' +
+              '</td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+
+      refreshAllTopScrollbars();
+    }
+
+    // ==================== MODALES DE "VER MOTIVO" Y "ESTADO / ACCIÓN" ====================
+
+    function findMedicationRecord(sourceTab, idMed, rowNum) {
+      const list = sourceTab === 'archivada' ? (appData.medicacionArchivada || []) : (appData.medicacionActiva || []);
+      if (idMed) {
+        const byId = list.find(function(x) {
+          return String(x.idMedicacion || '').toUpperCase() === String(idMed).toUpperCase();
+        });
+        if (byId) return byId;
+      }
+      if (rowNum) {
+        return list.find(function(x) { return Number(x.rowNumber) === Number(rowNum); }) || null;
+      }
+      return null;
+    }
+
+    function openViewMotivoModal(sourceTab, idMed, rowNum) {
+      const item = findMedicationRecord(sourceTab, idMed, rowNum);
+      if (!item) return;
+
+      document.getElementById('viewMotivoModalTitle').textContent =
+        'Motivos — ' + (item.nombreMedicamento || 'Indicación');
+
+      const blocks = [];
+
+      const motPresc = String(item.motivoPrescripcion || (! item.motivoBaja ? item.motivo : '') || '').trim();
+      if (motPresc || sourceTab === 'activa') {
+        blocks.push(
+          '<div class="motivo-detail-box">' +
+            '<span class="motivo-detail-title">Motivo de Prescripción (' + escapeHtml(item.fechaPrescripcion || 'Sin fecha') + ')</span>' +
+            '<div class="motivo-detail-text">' + escapeHtml(motPresc || 'No se especificó motivo al prescribir.') + '</div>' +
+          '</div>'
+        );
+      }
+
+      if (item.motivoPausa || item.fechaBajaPausa) {
+        blocks.push(
+          '<div class="motivo-detail-box pausa-box">' +
+            '<span class="motivo-detail-title">Motivo de Pausa (Fecha: ' + escapeHtml(item.fechaBajaPausa || '-') + ')</span>' +
+            '<div class="motivo-detail-text">' + escapeHtml(item.motivoPausa || 'Sin motivo de pausa detallado.') + '</div>' +
+          '</div>'
+        );
+      }
+
+      if (item.motivoReindicacion || item.fechaReindicacion) {
+        blocks.push(
+          '<div class="motivo-detail-box reind-box">' +
+            '<span class="motivo-detail-title">Motivo de Reindicación (Fecha: ' + escapeHtml(item.fechaReindicacion || '-') + ')</span>' +
+            '<div class="motivo-detail-text">' + escapeHtml(item.motivoReindicacion || 'Sin motivo de reindicación detallado.') + '</div>' +
+          '</div>'
+        );
+      }
+
+      const motBaja = String(item.motivoBaja || (sourceTab === 'archivada' ? item.motivo : '') || '').trim();
+      if (sourceTab === 'archivada' || motBaja || item.fechaCeseBaja) {
+        blocks.push(
+          '<div class="motivo-detail-box baja-box">' +
+            '<span class="motivo-detail-title">Motivo de Baja / Archivo (Fecha: ' + escapeHtml(item.fechaCeseBaja || '-') + ')</span>' +
+            '<div class="motivo-detail-text">' + escapeHtml(motBaja || 'No se especificó motivo de baja.') + '</div>' +
+          '</div>'
+        );
+      }
+
+      document.getElementById('viewMotivoModalBody').innerHTML = blocks.join('');
+      document.getElementById('viewMotivoModal').classList.remove('hidden');
+    }
+
+    function closeViewMotivoModal() {
+      document.getElementById('viewMotivoModal').classList.add('hidden');
+    }
+
+    function openStatusActionModal(sourceTab, idMed, rowNum) {
+      const item = findMedicationRecord(sourceTab, idMed, rowNum);
+      if (!item) return;
+
+      statusModalContext = {
+        sourceTab: sourceTab,
+        idMedicacion: item.idMedicacion || '',
+        rowNumber: item.rowNumber || null,
+        item: item
+      };
+
+      const medDesc = (item.nombreMedicamento || '') + (item.nombreDroga ? ' (' + item.nombreDroga + ')' : '') + (item.dosis ? ' — ' + item.dosis : '');
+      document.getElementById('statusActionMedSummary').innerHTML =
+        'Indicación seleccionada: <strong>' + escapeHtml(medDesc) + '</strong><br/>' +
+        'Estado actual: <strong>' + escapeHtml(item.estadoIndicacion || (sourceTab === 'archivada' ? 'Archivado' : 'Activo')) + '</strong>';
+
+      const selectEl = document.getElementById('statusActionSelect');
+      const isPaused = String(item.estadoIndicacion || '').toLowerCase() === 'pausado';
+
+      if (sourceTab === 'archivada') {
+        selectEl.innerHTML =
+          '<option value="reindicar">↺ Reindicar (Volver a Medicación Activa)</option>';
+      } else if (isPaused) {
+        selectEl.innerHTML =
+          '<option value="reindicar">↺ Reindicar (Reactivar medicación)</option>' +
+          '<option value="baja">📥 Dar de baja (Pasar a Medicación Archivada)</option>';
+      } else {
+        selectEl.innerHTML =
+          '<option value="pausar">⏸ Pausar medicación / tratamiento</option>' +
+          '<option value="baja">📥 Dar de baja (Pasar a Medicación Archivada)</option>' +
+          '<option value="reindicar">↺ Reindicar (Registrar nueva reindicación)</option>';
+      }
+
+      document.getElementById('statusActionMotivoInput').value = '';
+      updateStatusActionPromptLabel();
+      document.getElementById('statusActionModal').classList.remove('hidden');
+      setTimeout(function() {
+        document.getElementById('statusActionMotivoInput').focus();
+      }, 80);
+    }
+
+    function updateStatusActionPromptLabel() {
+      const val = document.getElementById('statusActionSelect').value;
+      const lbl = document.getElementById('statusActionMotivoLabel');
+      const inp = document.getElementById('statusActionMotivoInput');
+
+      if (val === 'pausar') {
+        lbl.textContent = 'Motivo de Pausa (se guardará en Columna U con fecha de hoy):';
+        inp.placeholder = 'Escribí por qué se pausa esta medicación o tratamiento...';
+      } else if (val === 'baja') {
+        lbl.textContent = 'Motivo de Baja (se archivará y guardará en Columna T con fecha de hoy):';
+        inp.placeholder = 'Escribí por qué se da de baja definitivamente...';
+      } else {
+        lbl.textContent = 'Motivo de Reindicación (se guardará en Columnas V y W con fecha de hoy):';
+        inp.placeholder = 'Escribí el motivo por el cual se reindica o reactiva...';
+      }
+    }
+
+    function closeStatusActionModal() {
+      statusModalContext = null;
+      document.getElementById('statusActionModal').classList.add('hidden');
+    }
+
+    async function confirmStatusActionModal() {
+      if (!statusModalContext) return;
+      const chosenAction = document.getElementById('statusActionSelect').value;
+      const motivoText = document.getElementById('statusActionMotivoInput').value.trim();
+
+      if (!motivoText) {
+        alert('Por favor, ingresá el motivo antes de confirmar.');
+        document.getElementById('statusActionMotivoInput').focus();
+        return;
+      }
+
+      const ctx = statusModalContext;
+      closeStatusActionModal();
+
+      showLoading('Actualizando estado y registrando motivo en Google Sheets...');
+      try {
+        const payload = {
+          action: 'changeMedicationStatus',
+          nroSocio: selectedNroSocio,
+          sourceTab: ctx.sourceTab,
+          idMedicacion: ctx.idMedicacion,
+          rowNumber: ctx.rowNumber,
+          statusAction: chosenAction,
+          motivo: motivoText
+        };
+
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+        if (json.status !== 'ok') {
+          throw new Error(json.message || 'No se pudo actualizar el estado');
+        }
+
+        appData = json.data;
+        localStorage.setItem('rf_med_cache_v9', JSON.stringify(appData));
+
+        if (currentTab === 'activa') renderActiveMedicationsTable();
+        if (currentTab === 'archivada') renderArchivedMedicationsTable();
+        setSyncBadge('Estado actualizado', false);
+      } catch (err) {
+        alert('Error al cambiar el estado: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ==================== MÓDULO: OBSERVACIONES (CON FECHA, HORA E ID) ====================
+
+    function toggleObsForm(forceState) {
+      const box = document.getElementById('obsFormBox');
+      const show = typeof forceState === 'boolean' ? forceState : box.classList.contains('hidden');
+      box.classList.toggle('hidden', !show);
+      if (show) {
+        document.getElementById('obsTextInput').focus();
+      }
+    }
+
+    function renderObservationsView() {
+      const listContainer = document.getElementById('obsListContainer');
+      const obsList = (appData.observaciones || []).filter(function(o) {
+        return String(o.nroSocio) === String(selectedNroSocio);
+      });
+
+      if (obsList.length === 0) {
+        listContainer.innerHTML =
+          '<div style="text-align:center; padding: 26px; color: var(--text-muted); border: 1px dashed #cbd5e1; border-radius: 8px;">' +
+            'No hay observaciones registradas para este residente. Tocá "+ Agregar observación" para cargar una nota.' +
+          '</div>';
+        return;
+      }
+
+      listContainer.innerHTML = obsList
+        .slice()
+        .reverse()
+        .map(function(o) {
+          const fechaHoraStr = [o.fecha, o.hora].filter(Boolean).join(' — ');
+          return (
+            '<div class="obs-item">' +
+              '<div class="obs-top-bar">' +
+                '<span>📅 ' + escapeHtml(fechaHoraStr || 'Fecha no registrada') + '</span>' +
+                '<span>Profesional: ' + escapeHtml(o.profesional || 'No especificado') + '</span>' +
+              '</div>' +
+              '<div class="obs-text">' + escapeHtml(o.observacion) + '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+
+    async function submitNewObservation() {
+      const texto = document.getElementById('obsTextInput').value.trim();
+      const profesional = document.getElementById('obsProfInput').value.trim();
+
+      if (!texto) {
+        alert('Por favor, escribí el detalle de la observación.');
+        return;
+      }
+      if (!profesional) {
+        alert('Por favor, ingresá el nombre del profesional.');
+        return;
+      }
+
+      showLoading('Guardando observación con Fecha, Hora e ID en Google Sheets...');
+      try {
+        const payload = {
+          action: 'addObservation',
+          nroSocio: selectedNroSocio,
+          observacion: texto,
+          profesional: profesional
+        };
+
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+        if (json.status !== 'ok') {
+          throw new Error(json.message || 'No se pudo guardar la observación');
+        }
+
+        appData = json.data;
+        localStorage.setItem('rf_med_cache_v9', JSON.stringify(appData));
+        document.getElementById('obsTextInput').value = '';
+        document.getElementById('obsProfInput').value = '';
+        toggleObsForm(false);
+        renderObservationsView();
+        setSyncBadge('Observación guardada', false);
+      } catch (err) {
+        alert('Error al guardar observación: ' + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ==================== MÓDULO DE IMPRESIÓN (PLANILLA OFICIO 1 HOJA) ====================
+
+    function formatHoraLowercase(timeStr) {
+      const clean = String(timeStr || '').trim();
+      if (!clean) return '';
+      return clean.replace(/\b(AM|PM)\b/gi, function(m) { return m.toLowerCase(); });
+    }
+
+    function buildPrintableRowsFromItems(itemsList) {
+      const expanded = [];
+      itemsList.forEach(function(m) {
+        const medName       = String(m.nombreMedicamento || '').trim();
+        const drogaName     = String(m.nombreDroga || '').trim();
+        const concentracion = String(m.dosis || '').trim();
+        const dosisValor    = String(m.unidadesPorToma || '').trim();
+
+        let medAndDroga = '';
+        if (medName && drogaName) {
+          medAndDroga = medName + ' (' + drogaName + ')';
+        } else {
+          medAndDroga = medName || drogaName || '';
+        }
+
+        const fullMedLine = [medAndDroga, concentracion].filter(Boolean).join(' ');
+
+        const rawHorarios = String(m.frecuenciaHorario || '').split(',').map(function(h) { return h.trim(); }).filter(Boolean);
+        if (rawHorarios.length === 0) {
+          expanded.push({
+            hora: '',
+            medicamentoDrogaConcentracion: fullMedLine,
+            dosis: dosisValor
+          });
+        } else {
+          rawHorarios.forEach(function(h) {
+            expanded.push({
+              hora: formatHoraLowercase(h),
+              medicamentoDrogaConcentracion: fullMedLine,
+              dosis: dosisValor
+            });
+          });
+        }
+      });
+      return expanded;
+    }
+
+    function openBlankPrintModal() {
+      printModalMode = 'blank';
+      printPrefilledMeds = [];
+      printPrefilledTemps = [];
+
+      document.getElementById('printModalTitle').textContent = 'Imprimir Planilla en Blanco (Hoja Oficio)';
+      document.getElementById('printModalSummary').innerHTML =
+        'Configurá cuántas filas en blanco querés en cada apartado. El sistema ajustará automáticamente el tamaño del cuadro y la letra para aprovechar toda la <strong>Hoja Oficio</strong> en una sola página.';
+
+      document.getElementById('labelBlankMed').textContent = 'Filas en blanco debajo de "MEDICAMENTO"';
+      document.getElementById('subLabelBlankMed').textContent = 'Podés elegir 0 si solo querés filas en Tratamiento Temporal';
+      document.getElementById('labelBlankTemp').textContent = 'Filas en blanco debajo de "TRATAMIENTO TEMPORAL"';
+      document.getElementById('subLabelBlankTemp').textContent = 'Podés elegir 0 si solo querés filas en Medicamento';
+
+      document.getElementById('inputBlankMedRows').value = 14;
+      document.getElementById('inputBlankTempRows').value = 6;
+
+      validatePrintRowLimits('med');
+      document.getElementById('printConfigModal').classList.remove('hidden');
+    }
+
+    function openResidentPrintModal() {
+      if (!selectedNroSocio) return;
+      const res = (appData.residentes || []).find(function(r) {
+        return String(r.nroSocio) === String(selectedNroSocio);
+      });
+      if (!res) return;
+
+      printModalMode = 'resident';
+
+      const activeForRes = (appData.medicacionActiva || []).filter(function(m) {
+        const sameSocio = String(m.nroSocio) === String(selectedNroSocio);
+        const estadoNorm = String(m.estadoIndicacion || 'Activo').trim().toLowerCase();
+        return sameSocio && estadoNorm === 'activo';
+      });
+
+      const medItems = activeForRes.filter(function(m) {
+        return !isTemporalItem(m);
+      });
+      const tempItems = activeForRes.filter(function(m) {
+        return isTemporalItem(m);
+      });
+
+      printPrefilledMeds  = buildPrintableRowsFromItems(medItems);
+      printPrefilledTemps = buildPrintableRowsFromItems(tempItems);
+
+      const preCount = printPrefilledMeds.length + printPrefilledTemps.length;
+      const remaining = Math.max(0, MAX_OFICIO_TOTAL_ROWS - preCount);
+
+      document.getElementById('printModalTitle').textContent =
+        'Imprimir Planilla de ' + (res.nombreCompleto || res.nombre || '');
+      document.getElementById('printModalSummary').innerHTML =
+        'Se autocompletarán <strong>' + printPrefilledMeds.length + ' fila(s) de Medicación Activa</strong> y <strong>' +
+        printPrefilledTemps.length + ' fila(s) de Tratamiento Temporal Activo</strong> (las pausadas se omiten). ' +
+        'Elegí cuántas filas adicionales en blanco agregar debajo de cada sección para llenar a mano.';
+
+      document.getElementById('labelBlankMed').textContent =
+        'Filas en blanco adicionales debajo de "MEDICAMENTO"';
+      document.getElementById('subLabelBlankMed').textContent =
+        'Se agregarán debajo de las ' + printPrefilledMeds.length + ' fila(s) activas del residente';
+
+      document.getElementById('labelBlankTemp').textContent =
+        'Filas en blanco adicionales debajo de "TRATAMIENTO TEMPORAL"';
+      document.getElementById('subLabelBlankTemp').textContent =
+        'Se agregarán debajo de las ' + printPrefilledTemps.length + ' fila(s) temporales activas';
+
+      const defaultExtraMed  = Math.min(3, remaining);
+      const defaultExtraTemp = Math.min(2, Math.max(0, remaining - defaultExtraMed));
+
+      document.getElementById('inputBlankMedRows').value  = defaultExtraMed;
+      document.getElementById('inputBlankTempRows').value = defaultExtraTemp;
+
+      validatePrintRowLimits('med');
+      document.getElementById('printConfigModal').classList.remove('hidden');
+    }
+
+    function closePrintModal() {
+      document.getElementById('printConfigModal').classList.add('hidden');
+    }
+
+    function validatePrintRowLimits(changedField) {
+      const inputMed  = document.getElementById('inputBlankMedRows');
+      const inputTemp = document.getElementById('inputBlankTempRows');
+
+      const baseMeds  = printModalMode === 'resident' ? printPrefilledMeds.length : 0;
+      const baseTemps = printModalMode === 'resident' ? printPrefilledTemps.length : 0;
+      const maxBlankAvailable = Math.max(0, MAX_OFICIO_TOTAL_ROWS - (baseMeds + baseTemps));
+
+      let blankMed  = Math.max(0, parseInt(inputMed.value, 10) || 0);
+      let blankTemp = Math.max(0, parseInt(inputTemp.value, 10) || 0);
+
+      if (blankMed + blankTemp > maxBlankAvailable) {
+        if (changedField === 'med') {
+          blankMed = Math.min(blankMed, maxBlankAvailable);
+          blankTemp = Math.min(blankTemp, Math.max(0, maxBlankAvailable - blankMed));
+        } else {
+          blankTemp = Math.min(blankTemp, maxBlankAvailable);
+          blankMed = Math.min(blankMed, Math.max(0, maxBlankAvailable - blankTemp));
+        }
+      }
+
+      inputMed.value  = blankMed;
+      inputTemp.value = blankTemp;
+
+      inputMed.max  = Math.max(0, maxBlankAvailable - blankTemp);
+      inputTemp.max = Math.max(0, maxBlankAvailable - blankMed);
+
+      const totalRows = baseMeds + baseTemps + blankMed + blankTemp;
+      const counterEl = document.getElementById('printTotalRowsCounter');
+      counterEl.textContent = totalRows + ' / ' + MAX_OFICIO_TOTAL_ROWS + ' máx. (1 Hoja Oficio)';
+    }
+
+    function getMedicationCellFontSizePt(text, baseFontPt) {
+      const len = String(text || '').length;
+      if (len > 75) return Math.max(4.0, baseFontPt - 3.6);
+      if (len > 60) return Math.max(4.6, baseFontPt - 3.0);
+      if (len > 45) return Math.max(5.2, baseFontPt - 2.3);
+      if (len > 30) return Math.max(6.0, baseFontPt - 1.4);
+      return baseFontPt;
+    }
+
+    function getHoraCellFontSizePt(text, baseFontPt) {
+      const len = String(text || '').length;
+      if (len > 9) return Math.min(5.8, baseFontPt);
+      if (len > 7) return Math.min(6.5, baseFontPt);
+      return Math.min(7.2, baseFontPt);
+    }
+
+    function getDosisCellFontSizePt(text, baseFontPt) {
+      const len = String(text || '').length;
+      if (len > 9) return Math.min(4.8, baseFontPt);
+      if (len > 6) return Math.min(5.6, baseFontPt);
+      if (len > 4) return Math.min(6.4, baseFontPt);
+      return Math.min(7.2, baseFontPt);
+    }
+
+    function executePrintSheet() {
+      const blankMed  = Math.max(0, parseInt(document.getElementById('inputBlankMedRows').value, 10) || 0);
+      const blankTemp = Math.max(0, parseInt(document.getElementById('inputBlankTempRows').value, 10) || 0);
+
+      const medRows = (printModalMode === 'resident' ? printPrefilledMeds.slice() : []);
+      for (let i = 0; i < blankMed; i++) {
+        medRows.push({ hora: '', medicamentoDrogaConcentracion: '', dosis: '' });
+      }
+
+      const tempRows = (printModalMode === 'resident' ? printPrefilledTemps.slice() : []);
+      for (let j = 0; j < blankTemp; j++) {
+        tempRows.push({ hora: '', medicamentoDrogaConcentracion: '', dosis: '' });
+      }
+
+      if (medRows.length === 0 && tempRows.length === 0) {
+        alert('Debés incluir al menos 1 fila en alguno de los apartados para generar la planilla.');
+        return;
+      }
+
+      let pacienteNombre = '';
+      let pacienteSocio  = '';
+      let pacienteAlergia = '';
+      let pacienteNota   = '';
+
+      if (printModalMode === 'resident' && selectedNroSocio) {
+        const res = (appData.residentes || []).find(function(r) {
+          return String(r.nroSocio) === String(selectedNroSocio);
+        });
+        if (res) {
+          pacienteNombre  = res.nombreCompleto || res.nombre || '';
+          pacienteSocio   = res.nroSocio || '';
+          pacienteAlergia = res.alergias || 'Ninguna';
+          pacienteNota    = res.nota || '';
+        }
+      }
+
+      const logoUrl = new URL('Logo.png', window.location.href).href;
+
+      const totalDataRows = medRows.length + tempRows.length;
+      const usableTableHeightMm = 136;
+      const rowHeightMm = Math.max(3.8, Math.min(11.0, usableTableHeightMm / Math.max(1, totalDataRows)));
+      const baseFontPt  = Math.max(6.2, Math.min(10.5, rowHeightMm * 1.45));
+      const headerFontPt = Math.max(7.5, Math.min(10.0, baseFontPt + 0.5));
+
+      let daysHeadersHtml = '';
+      let emptyDaysCellsHtml = '';
+      for (let d = 1; d <= 31; d++) {
+        daysHeadersHtml += '<th class="col-day">' + d + '</th>';
+        emptyDaysCellsHtml += '<td class="col-day"></td>';
+      }
+
+      const medRowsHtml = medRows.map(function(r) {
+        const medFontPt   = getMedicationCellFontSizePt(r.medicamentoDrogaConcentracion, baseFontPt);
+        const horaFontPt  = getHoraCellFontSizePt(r.hora, baseFontPt);
+        const dosisFontPt = getDosisCellFontSizePt(r.dosis, baseFontPt);
+        return (
+          '<tr class="data-row">' +
+            '<td class="col-hora"><span style="font-size:' + horaFontPt.toFixed(1) + 'pt;">' + escapeHtml(r.hora) + '</span></td>' +
+            '<td class="col-med"><span style="font-size:' + medFontPt.toFixed(1) + 'pt;">' + escapeHtml(r.medicamentoDrogaConcentracion) + '</span></td>' +
+            '<td class="col-dosis"><span style="font-size:' + dosisFontPt.toFixed(1) + 'pt;">' + escapeHtml(r.dosis) + '</span></td>' +
+            emptyDaysCellsHtml +
+          '</tr>'
+        );
+      }).join('');
+
+      const tempSectionHtml =
+        '<tr class="section-divider-row">' +
+          '<td class="col-hora"></td>' +
+          '<td class="col-med section-title-cell">TRATAMIENTO TEMPORAL</td>' +
+          '<td class="col-dosis"></td>' +
+          emptyDaysCellsHtml +
+        '</tr>' +
+        tempRows.map(function(r) {
+          const medFontPt   = getMedicationCellFontSizePt(r.medicamentoDrogaConcentracion, baseFontPt);
+          const horaFontPt  = getHoraCellFontSizePt(r.hora, baseFontPt);
+          const dosisFontPt = getDosisCellFontSizePt(r.dosis, baseFontPt);
+          return (
+            '<tr class="data-row">' +
+              '<td class="col-hora"><span style="font-size:' + horaFontPt.toFixed(1) + 'pt;">' + escapeHtml(r.hora) + '</span></td>' +
+              '<td class="col-med"><span style="font-size:' + medFontPt.toFixed(1) + 'pt;">' + escapeHtml(r.medicamentoDrogaConcentracion) + '</span></td>' +
+              '<td class="col-dosis"><span style="font-size:' + dosisFontPt.toFixed(1) + 'pt;">' + escapeHtml(r.dosis) + '</span></td>' +
+              emptyDaysCellsHtml +
+            '</tr>'
+          );
+        }).join('');
+
+      const printHtml =
+        '<!DOCTYPE html>' +
+        '<html lang="es">' +
+        '<head>' +
+          '<meta charset="UTF-8" />' +
+          '<title>Registro de Medicación Enfermería</title>' +
+          '<style>' +
+            '@page { size: 355.6mm 215.9mm; margin: 3mm; }' +
+            '* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
+            'html, body { width: 100%; height: 100%; background: #fff; color: #000; }' +
+            '.sheet-page { width: 100%; height: 196mm; max-height: 196mm; display: grid; grid-template-rows: 68px auto 1fr 8.5mm; overflow: hidden; }' +
+            '.header-top-zone { position: relative; width: 100%; height: 68px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #000; padding-right: 74px; }' +
+            '.title-bar { text-align: center; font-size: 13.5pt; font-weight: 800; letter-spacing: 0.6px; }' +
+            '.sheet-logo { position: absolute; top: 0; right: 2px; width: 66px; height: 68px; object-fit: contain; }' +
+            '.patient-info-bar { display: grid; grid-template-columns: 2.2fr 1fr 1.6fr 1.6fr; gap: 6px; align-items: center; padding: 4px 4px; font-size: 9pt; border-bottom: 1.5px solid #000; }' +
+            '.patient-field { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+            '.patient-field.date-right { text-align: right; padding-right: 2px; }' +
+            '.patient-field strong { font-weight: 800; }' +
+            '.table-zone { width: 100%; height: 100%; overflow: hidden; }' +
+            '.grid-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; border: 1.5px solid #000; border-bottom: none; }' +
+            '.grid-table th, .grid-table td { border: 1px solid #000; padding: 0 2px; height: ' + rowHeightMm.toFixed(2) + 'mm; max-height: ' + rowHeightMm.toFixed(2) + 'mm; font-size: ' + baseFontPt.toFixed(1) + 'pt; line-height: 0.95; overflow: hidden; vertical-align: middle; }' +
+            '.grid-table thead th { background-color: #e2e8f0 !important; color: #000 !important; font-size: ' + headerFontPt.toFixed(1) + 'pt; font-weight: 800; text-align: center; height: 5.5mm !important; max-height: 5.5mm !important; }' +
+            '.col-hora { width: 54px; max-width: 54px; text-align: center; font-weight: 700; white-space: nowrap; padding: 0 1px !important; letter-spacing: -0.2px; }' +
+            '.grid-table thead th.col-hora { font-size: 7.5pt !important; }' +
+            '.col-med { width: auto; text-align: left; white-space: nowrap; overflow: hidden; font-weight: 600; padding: 0 4px !important; }' +
+            '.col-dosis { width: 37px; max-width: 37px; text-align: center; font-weight: 700; white-space: nowrap; padding: 0 1px !important; letter-spacing: -0.2px; }' +
+            '.grid-table thead th.col-dosis { font-size: 7pt !important; }' +
+            '.col-day { width: 30px; min-width: 30px; text-align: center; font-weight: 700; padding: 0 !important; font-size: 7.2pt !important; }' +
+            '.section-divider-row td { background-color: #e2e8f0 !important; color: #000 !important; height: 5.2mm !important; max-height: 5.2mm !important; font-weight: 800; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; }' +
+            '.section-title-cell { text-align: center !important; font-size: ' + headerFontPt.toFixed(1) + 'pt !important; letter-spacing: 0.4px; }' +
+            '.notes-footer-box { width: 100%; height: 8.5mm; border: 1.5px solid #000; padding: 2px 6px; font-size: 8.8pt; display: flex; align-items: center; background: #fff; overflow: hidden; }' +
+            '.notes-label { font-weight: 800; margin-right: 6px; white-space: nowrap; }' +
+            '.notes-content { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+          '</style>' +
+        '</head>' +
+        '<body>' +
+          '<div class="sheet-page">' +
+            '<div class="header-top-zone">' +
+              '<div class="title-bar">REGISTRO DE MEDICACION ENFERMERIA</div>' +
+              '<img src="' + escapeHtml(logoUrl) + '" alt="Logo" class="sheet-logo" onerror="this.style.display=\'none\'" />' +
+            '</div>' +
+            '<div class="patient-info-bar">' +
+              '<div class="patient-field"><strong>PACIENTE:</strong> ' + (pacienteNombre ? escapeHtml(pacienteNombre) : '…………………………………………………………………………') + '</div>' +
+              '<div class="patient-field"><strong>NRO DE SOCIO:</strong> ' + (pacienteSocio ? escapeHtml(pacienteSocio) : '…………………………') + '</div>' +
+              '<div class="patient-field"><strong>ALERGIAS:</strong> ' + (pacienteAlergia ? escapeHtml(pacienteAlergia) : '………………………………………………') + '</div>' +
+              '<div class="patient-field date-right"><strong>MES:</strong> ……………………… <strong>AÑO:</strong> ………………</div>' +
+            '</div>' +
+            '<div class="table-zone">' +
+              '<table class="grid-table">' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th class="col-hora">HORA</th>' +
+                    '<th class="col-med">MEDICAMENTO</th>' +
+                    '<th class="col-dosis">Dosis</th>' +
+                    daysHeadersHtml +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                  medRowsHtml +
+                  tempSectionHtml +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+            '<div class="notes-footer-box">' +
+              '<span class="notes-label">NOTAS:</span>' +
+              '<span class="notes-content">' + escapeHtml(pacienteNota) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<script>' +
+            'window.onload = function() { setTimeout(function() { window.print(); }, 300); };' +
+          '<\/script>' +
+        '</body>' +
+        '</html>';
+
+      closePrintModal();
+
+      const printWin = window.open('', '_blank', 'width=1200,height=800');
+      if (!printWin) {
+        alert('Tu navegador bloqueó la ventana emergente de impresión. Por favor permití las ventanas emergentes para este sitio.');
+        return;
+      }
+      printWin.document.open();
+      printWin.document.write(printHtml);
+      printWin.document.close();
+    }
+  </script>
+</body>
+</html>
